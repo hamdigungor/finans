@@ -492,7 +492,7 @@ table.sg-t{min-width:1638px;width:1638px}
 .kc-g{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,7fr);gap:12px;align-items:start}
 .kc-sol,.kc-sag{display:flex;flex-direction:column;gap:12px;min-width:0}
 .kc-kartp{container:kckart / inline-size}
-.kc-kartp .tw{overflow-x:hidden}
+.kc-kartp .tw{overflow-x:auto}
 .kc-borcp{container:kcborc / inline-size}
 .kc-planp{container:kcplan / inline-size}
 .kc-g .panel-h{padding:8px 14px;min-height:46px}
@@ -509,7 +509,7 @@ table.sg-t{min-width:1638px;width:1638px}
 .kc-g .kc-kart tr.kc-bugun td{padding:2px 10px;border-top:2px solid var(--accent);border-bottom:0;background:var(--accent-soft);color:var(--accent);font-size:11.5px;font-weight:600;line-height:1.4}
 .kc-pl{display:block;font-size:11.5px;color:var(--muted);line-height:1.2;font-family:var(--f-mono)}
 .kc-bilgi{display:inline-grid;place-items:center;width:17px;height:17px;border-radius:50%;border:1px solid var(--line-strong);font-size:11px;line-height:1;color:var(--muted);cursor:help;font-weight:600;flex:none}
-@container kckart (max-width:479px){.kc-kart .kc-esn{max-width:0;overflow:hidden;text-overflow:ellipsis}.kc-kart th.kc-esn{width:64%}.kc-kart th.kc-kc{width:36%}.kc-g .kc-kart td,.kc-g .kc-kart th{padding-left:7px;padding-right:7px}}
+@container kckart (max-width:539px){.kc-kart .kc-esn{max-width:0;overflow:hidden;text-overflow:ellipsis}.kc-kart th.kc-esn{width:64%}.kc-kart th.kc-kc{width:36%}.kc-g .kc-kart td,.kc-g .kc-kart th{padding-left:7px;padding-right:7px}}
 @container kckart (max-width:439px){.kc-kart .kc-kc{display:none}.kc-kart th.kc-esn{width:100%}}
 @container kcborc (max-width:999px){.kc-borc .kc-esn{max-width:0;overflow:hidden;text-overflow:ellipsis}.kc-borc th.kc-esn:first-child{width:30%}.kc-borc th.kc-esn + th.kc-esn{width:27%}.kc-g .kc-borc td,.kc-g .kc-borc th{padding-left:7px;padding-right:7px}}
 @container kcborc (max-width:999px){.kc-borc .kc-cek{display:none}}
@@ -1931,6 +1931,21 @@ table.ck-tl.ck-tl-ur{margin-top:6px;width:auto;align-self:flex-start}
   tr.mob-gz{display:none}.mob-tum{display:block;width:100%;margin:6px 0 2px;text-align:center}
 }
 @media (max-width:820px){.tk-ipucu{display:none}.tk-hb{justify-content:flex-start!important}}
+/* bilgisayar: yalnız bölüm listesi kayar; marka üstte, Kilitle / Ara / Not penceresi / bağlantı durumu altta sabit */
+@media (min-width:821px){
+  .side{overflow:hidden}
+  .side .nav{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;margin-right:-6px;padding-right:6px;overscroll-behavior:contain}
+  .side .spacer{display:none}
+  .side .nav + .spacer + *{margin-top:8px}
+}
+/* pancar fişleri: fabrika nakliyesi alındı → hafif yeşil; şoföre de ödendi → biraz daha koyu (yalnız şoför ödendi → hafif mavi) */
+.pn-f tr.pn-fab>td{background:color-mix(in srgb,var(--pos) 7%,transparent)}
+.pn-f tr.pn-sof>td{background:color-mix(in srgb,var(--accent) 7%,transparent)}
+.pn-f tr.pn-fab.pn-sof>td{background:color-mix(in srgb,var(--pos) 15%,transparent)}
+/* cari ekstresi yazdırma: her işlem tek satır; tarih ve tutarlar tam, açıklama kalan genişliğe sığar (uzunsa "…"), hesap en fazla 42 mm */
+@media print{#yazdirAlani table.cr-yz{table-layout:auto;width:100%}#yazdirAlani table.cr-yz td,#yazdirAlani table.cr-yz th{white-space:nowrap}
+  #yazdirAlani.dokum-yaz table.cr-yz td.ac{white-space:nowrap;width:100%;max-width:0;overflow:hidden;text-overflow:ellipsis}
+  #yazdirAlani table.cr-yz td.hs{max-width:34mm;overflow:hidden;text-overflow:ellipsis}#yazdirAlani table.cr-yz{font-size:9.5pt}#yazdirAlani table.cr-yz td.ac.k1{font-size:8.5pt}#yazdirAlani table.cr-yz td.ac.k2{font-size:7.6pt}#yazdirAlani table.cr-yz td.ac.k3{font-size:6.8pt}#yazdirAlani table.cr-yz td,#yazdirAlani table.cr-yz th{padding-left:1.6mm;padding-right:1.6mm}}
 
 </style>
 
@@ -6614,6 +6629,49 @@ const EN = {
   "/kg karkas": "/kg carcass",
   "/kg": "/kg",
   "Tümünü göster ({n})": "Show all ({n})",
+  "Bu fiş, hesaba işlenmiş bir şoför ödemesine bağlı ({n} fiş). Hesap hareketi silinip bu fişlerin \"ödendi\" işareti kaldırılsın mı?": "This receipt is linked to a driver payment recorded to an account ({n} receipts). Delete the transaction and remove the \"paid\" mark from these receipts?",
+  "Fiş seçin.": "Select a receipt.",
+  "Hesaba işle ve işaretle": "Record to account and mark",
+  "Hesap hareketi oluşmaz": "No transaction is created",
+  "Hesap seçin": "Select an account",
+  "Hesap seçin.": "Select an account.",
+  "Seçilen fişlerin şoför nakliyesi tek ödeme olarak hesaba işlenir; fişler \"ödendi\" işaretlenir. Hesaba işlemeden yalnız işaretlemek için \"Yalnız işaretle\".": "The driver transport of the selected receipts is recorded as one payment; receipts are marked \"paid\". To mark without recording, use \"Mark only\".",
+  "Sil ve kaldır": "Delete and remove",
+  "Yalnız işaretle": "Mark only",
+  "{h} hesabına işlendi · {n} fiş": "Recorded to {h} · {n} receipts",
+  "{n} fiş işaretlendi": "{n} receipts marked",
+  "{n} fiş · {kg} kg": "{n} receipts · {kg} kg",
+  "Şoför nakliyesi ödendi": "Driver transport paid",
+  "şoför nakliyesi": "driver transport",
+  "Pancar şoför nakliyesi": "Beet driver transport",
+  "Pancar fişi": "Beet receipt",
+  "Pancar": "Beet",
+  "Cari (şoför)": "Account party (driver)",
+  "Cari adını yazın.": "Enter the party name.",
+  "Cariden mahsup": "Offset from party account",
+  "Hesaplar › Cariler'deki ad": "Name as in Accounts › Parties",
+  "Hesaptan ödendi": "Paid from account",
+  "Mahsup et ve işaretle": "Offset and mark",
+  "Pancar şoför nakliyesi mahsubu": "Beet driver transport offset",
+  "{a} · {c} carisinden mahsup": "{a} · offset from {c}",
+  "{c} carisinden mahsup edildi · {n} fiş": "Offset from {c} · {n} receipts",
+  "Şoförün carideki borcundan düşülür; para çıkmaz": "Deducted from the driver's party balance; no money leaves",
+  "{t} Pancar nakliyesi": "{t} Beet transport",
+  "İade (fazla tahsilat) · ": "Refund (overpayment) · ",
+  "Bu fiş hesaba işlenmiş bir şoför ödemesine bağlı. Önce listede şoför işaretini kaldırın (ödeme kaydı geri alınır), sonra silin.": "This receipt is linked to a recorded driver payment. First remove the driver mark in the list (the payment is reversed), then delete.",
+  "Bu fiş hesaba işlenmiş bir şoför ödemesine bağlı; işareti listedeki şoför kutusundan kaldırın (ödeme kaydı da geri alınır).": "This receipt is linked to a recorded driver payment; remove the mark from the driver box in the list (the payment is reversed too).",
+  "{n} fiş hesaba işlenmiş bir şoför ödemesine bağlı; bunlar silinmedi. Önce şoför işaretini kaldırın.": "{n} receipts are linked to a recorded driver payment and were not deleted. Remove the driver mark first.",
+  "Hayvancılık ya da tarım kaydı silinmiş ama hesap hareketi kalmış": "Livestock or farm record deleted but its transaction remains",
+  "Beklenen (nakit akış)": "Expected (cash flow)",
+  "Aynı çekin diğer {n} parçası da güncellendi": "The other {n} parts of the same cheque were updated too",
+  "Nakit ve Havale/EFT ödemelerinde hesabı seçin (Hesaba işle).": "For Cash and Transfer/EFT payments, select the account (Post to account).",
+  "Yalnız kalanı olanlar gösteriliyor; {n} kayıt gizli.": "Showing only records with a remaining balance; {n} records hidden.",
+  "{n} hayvancılık ödeme / tahsilat hareketine işletme yazıldı": "Business set on {n} livestock payment / collection transactions",
+  "Vadeli / çekli ödeme hesaba işlenmez; vade günü nakit akışta \"tahsil edildi\" yapın.": "A cheque / deferred payment is not posted to an account; mark it \"collected\" in cash flow on the due date.",
+  "Çek / vadeli ödeme": "Cheque / deferred payment",
+  "Tarım › Havuç ödemelerinden": "from Farming › Carrot payments",
+  "Tarım › Hububat ödemelerinden": "from Farming › Grain payments",
+  "Çek, senet ya da vadeli ödemede paranın hesaba gireceği gün: tutar o gün nakit akışa beklenen giriş olarak yazılır. Tahsil edilince nakit akışta \"tahsil edildi\" yapın (gelir o gün yazılır). Vadeli satır hesaba işlenmez.": "For a cheque, note or deferred payment, the day the money reaches the account: the amount is written to cash flow as an expected inflow on that day. When collected, mark it \"collected\" in cash flow (income is recorded that day). A deferred row is not posted to an account.",
 };
 
 /* =====================================================================
@@ -7088,7 +7146,10 @@ function liveApi(url, key) {
     async nakitToplam(f) { return chk(await sb.rpc("fn_nakit_toplam", { p: clean(f) })); },
     nakitBekleyen: () => all(() => sb.from("v_nakit_akis").select("*").eq("odendi", false).order("tarih").order("id")),
     // birikmiş net: devir + gerçekleşen hareketler + (bugün ve sonrası) planlanan; veritabanı fonksiyonu yoksa eski hesap (yalnız nakit akış kayıtları)
-    async nakitBirikim2(tarihler, bugun) { const { data, error } = await sb.rpc("fn_nakit_birikim2", { p_tarihler: tarihler, p_bugun: bugun }); if (error) { if (/PGRST202|fn_nakit_birikim2/i.test((error.code || "") + (error.message || ""))) return null; throw error; } return data; },
+    async nakitBirikim2(tarihler, bugun, haric) {
+      let { data, error } = await sb.rpc("fn_nakit_birikim2", { p_tarihler: tarihler, p_bugun: bugun, p_haric: haric || [] });
+      if (error && /PGRST202/i.test(error.code || "")) ({ data, error } = await sb.rpc("fn_nakit_birikim2", { p_tarihler: tarihler, p_bugun: bugun }));   // kurulum.sql henüz güncellenmemiş
+      if (error) { if (/PGRST202|fn_nakit_birikim2/i.test((error.code || "") + (error.message || ""))) return null; throw error; } return data; },
     async nakitDevirleri() { const k = S.lk.kategoriler.find(x => x.ad === "Devir"); if (!k) return []; return chk(await sb.from("nakit_akis").select("id,tarih,isletme_id,yon,tutar,net").eq("kategori_id", k.id).eq("para_birimi", "TRY")); },
     async nakitBirikim(tarihler, pb) { return chk(await sb.rpc("fn_nakit_birikim", { p_tarihler: tarihler, p_pb: pb || "TRY" })); },
     nakitNobet: from => all(() => sb.from("v_nakit_akis").select("id,tarih,isletme_id,isletme,aciklama1,aciklama2").gte("tarih", from).or("aciklama1.ilike.*nöbet*,aciklama1.ilike.*NÖBET*,aciklama1.ilike.*Nöbet*,aciklama1.ilike.*nobet*,aciklama2.ilike.*nöbet*,aciklama2.ilike.*NÖBET*,aciklama2.ilike.*Nöbet*,aciklama2.ilike.*nobet*").order("tarih")),
@@ -7222,7 +7283,7 @@ function demoApi() {
   function nfiltre(f = {}) {
     const q = (f.q || "").toLocaleLowerCase("tr"), bugun = f.bugun || todayISO();
     return D.nakit.map(nview).filter(n => (!f.from || n.tarih >= f.from) && (!f.to || n.tarih <= f.to) && (!f.kisi_id || n.kisi_id == f.kisi_id) && (!f.hesap_id || n.hesap_id == f.hesap_id) &&
-      (!f.isletme_id || (f.isletme_id === "bos" ? n.isletme_id == null : n.isletme_id == f.isletme_id)) && (!f.kategori_id || n.kategori_id == f.kategori_id) && (!f.yon || n.yon === f.yon) && (!f.seri_id || n.seri_id === f.seri_id) &&
+      (!f.isletme_id || (f.isletme_id === "bos" ? n.isletme_id == null : n.isletme_id == f.isletme_id)) && (!f.kategori_id || n.kategori_id == f.kategori_id) && (!f.yon || n.yon === f.yon) && (!f.seri_id || n.seri_id === f.seri_id) && (!f.kaynak_on || String(n.kaynak || "").startsWith(f.kaynak_on)) &&
       (!f.durum || (f.durum === "bekleyen" && !n.odendi) || (f.durum === "gerceklesen" && n.odendi) || (f.durum === "tahmini" && !n.odendi && !n.kesin) || (f.durum === "gecikmis" && !n.odendi && n.tarih < bugun)) &&
       (!q || [n.aciklama1, n.aciklama2, n.kategori, n.isletme, n.hesap, n.kisi].join(" ").toLocaleLowerCase("tr").includes(q) || qTutar(q, n.tutar)));
   }
@@ -7425,10 +7486,12 @@ function demoApi() {
       return tick([...m.values()].sort((a, b) => a.para_birimi.localeCompare(b.para_birimi)));
     },
     async nakitBekleyen() { return tick(D.nakit.filter(n => !n.odendi).map(nview).sort(nsort)); },
-    async nakitBirikim2(tarihler, bugun) {
+    async nakitBirikim2(tarihler, bugun, haric) {
+      const hr = new Set((haric || []).map(Number));
       const devK = D.kategoriler.find(k => k.ad === "Devir"), dv = D.nakit.filter(n => devK && n.kategori_id === devK.id && n.para_birimi === "TRY"), t0 = dv.reduce((m, n) => (n.tarih > m ? n.tarih : m), "1900-01-01");
       const tur = id => byId(D.hesaplar, id)?.tur, rol = id => byId(D.kategoriler, id)?.rol;
-      const G = D.hareketler.filter(h => h.tarih > t0 && h.tarih <= bugun && (h.para_birimi || "TRY") === "TRY" && h.kaynak !== "ortak_devir" && rol(h.kategori_id) !== "kk_odeme" && (h.hesap_id == null || ["Banka", "Kasa"].includes(tur(h.hesap_id)) || (tur(h.hesap_id) === "Kredi Kartı" && h.kategori_id)));
+      const G = D.hareketler.filter(h => h.tarih > t0 && h.tarih <= bugun && (h.para_birimi || "TRY") === "TRY" && h.kaynak !== "ortak_devir" && rol(h.kategori_id) !== "kk_odeme" && (h.hesap_id == null || ["Banka", "Kasa"].includes(tur(h.hesap_id)) || (tur(h.hesap_id) === "Kredi Kartı" && h.kategori_id))
+        && !(h.hesap_id == null && (["hayvan", "hymasraf"].includes(h.ek?.kaynak) || hr.has(+h.kategori_id))));   // hayvancılık tahakkuku nakit değil
       const Pl = D.nakit.filter(n => !n.odendi && n.para_birimi === "TRY" && n.tutar != null && !(devK && n.kategori_id === devK.id));
       const hn = h => (h.yon === "Giren" ? 1 : h.yon === "Çıkan" ? -1 : 0) * +h.tutar, pn = n => { const v = nnet(n); return rol(n.kategori_id) === "kk_odeme" && +n.tutar ? v * (1 - Math.min(1, Math.max(0, (+n.harcama || 0) / Math.abs(+n.tutar)))) : v; };
       const out = []; for (const i of [...D.isletmeler, { id: null, ad: null }]) for (const t of tarihler) {
@@ -9566,10 +9629,19 @@ function yaziTur(el) {
   const lbl = trLow((el.getAttribute("aria-label") || (el.closest("label") ? [...el.closest("label").childNodes].filter(n => n.nodeType === 3).map(n => n.textContent).join("") : "")).trim());
   return /^açıklama( [12])?$/.test(lbl) ? "baslik" : lbl === "not" ? "cumle" : "";
 }
+// araç plakası (ör. 42BIS731, 42 bis 731, 34 ABC 12): büyük harfe ve "42 BIS 731" biçimine çevrilir, kelime düzeltmesine uğramaz.
+// Plaka sayılan: bitişik yazılan (rakam-harf-rakam) ya da harfleri büyük yazılan; "12 ay 1500" gibi küçük harfli ifadelere dokunulmaz.
+const YZ_PLAKA = /(^|[^\p{L}\p{N}])(\d{2})(\s?)([A-Za-zıİ]{1,3})(\s?)(\d{2,5})(?=$|[^\p{L}\p{N}])/gu;
+const yzPlakaHarf = h => h.replace(/[ıiİ]/g, "I").toUpperCase();
+function yaziPlaka(ham, y) {
+  const P = []; for (const m of ham.matchAll(YZ_PLAKA)) { const bitisik = !m[3] && !m[5]; if (bitisik || m[4] === m[4].toUpperCase()) P.push(`${m[2]}${yzPlakaHarf(m[4])}${m[6]}`); }
+  if (!P.length) return y;
+  return y.replace(YZ_PLAKA, (t, on, a, s1, h, s2, b) => P.includes(`${a}${yzPlakaHarf(h)}${b}`) ? `${on}${a} ${yzPlakaHarf(h)} ${b}` : t);
+}
 function yaziDuzelt(el) {
   if (!el?.dataset?.yzd) return; delete el.dataset.yzd;
   const tur = yaziTur(el); if (!tur) return;
-  const v = el.value, y = tur === "isim" ? yaziIsim(v) : tur === "baslik" ? yaziBaslik(v) : yaziCumle(v);
+  const v = el.value, y = yaziPlaka(v, tur === "isim" ? yaziIsim(v) : tur === "baslik" ? yaziBaslik(v) : yaziCumle(v));
   if (y !== v) el.value = y;
 }
 // alan odağa gelince: tarayıcının Türkçe yazım denetimi ve mobil klavyede otomatik büyük harf; kayıtlardaki adları arka planda yükle
@@ -13087,14 +13159,14 @@ function cariEkstre(ad, sonra) {
   d.classList.add("cr-drawer");   // pencere içeriğe göre genişler: açıklama tek satırda tam görünür
   $("#crKapat", d).onclick = closeDrawer;
   // yazdırma: para birimi başına eskiden yeniye ekstre ve son bakiye
-  const fmtY = (v, pb) => (pb === "gram" ? `${pnN(v, Math.abs(v) % 1 ? 2 : 0)} g` : money(v, pb));
+  const fmtY = (v, pb) => (pb === "gram" ? `${pnN(v, Math.abs(v) % 1 ? 2 : 0)} g` : pb === "TRY" ? nf2.format(v) : money(v, pb));   // TL sütununda ₺ yazılmaz (yer kazanmak için; başlıkta TL)
   $("#crYaz", d).onclick = () => yazdirSayfa(`<h1>${esc(ad)}</h1><div class="alt">${T("Cari hesap ekstresi")} · ${fdate(todayISO())}</div>${pbler.map(pb => {
     let b = 0; const L = R.filter(h => (h.para_birimi || "TRY") === pb).map(h => { b -= +h.net || 0; return { h, b }; });
-    return `${pbler.length > 1 ? `<h2>${pb === "TRY" ? T("TL") : pb === "gram" ? T("Altın (gram)") : esc(pb)}</h2>` : ""}<table><thead><tr><th>${T("Tarih")}</th><th>${T("Hesap")}</th><th>${T("Açıklama")}</th><th class="r">${T("Borç")}</th><th class="r">${T("Alacak")}</th><th class="r">${T("Bakiye")}</th></tr></thead>
-      <tbody>${L.map(({ h, b }) => `<tr><td>${fdate(h.tarih)}</td><td>${esc(h.hesap ? [h.kisi, h.hesap].filter(Boolean).join(" · ") : T("elden"))}</td><td class="ac">${esc([h.aciklama1, h.aciklama2].filter(Boolean).join(" · "))}</td>
-        <td class="r">${+h.net < 0 ? fmtY(-h.net, pb) : ""}</td><td class="r">${+h.net > 0 ? fmtY(+h.net, pb) : ""}</td><td class="r">${fmtY(Math.abs(b), pb)} ${bA(b)}</td></tr>`).join("")}
-      <tr class="tot"><td colspan="3">${T("Toplam")}</td><td class="r">${fmtY(L.reduce((t, { h }) => t + Math.max(0, -h.net), 0), pb)}</td><td class="r">${fmtY(L.reduce((t, { h }) => t + Math.max(0, +h.net), 0), pb)}</td><td></td></tr>
-      <tr class="tot"><td colspan="5">${bakAd(b)}</td><td class="r">${fmtY(Math.abs(b), pb)} ${bA(b)}</td></tr></tbody></table>`; }).join("")}<div class="dip">${T("Borç: cariye verilen, Alacak: cariden alınan tutar. (B) borç bakiyesi, (A) alacak bakiyesi.")}</div>`, { kenar: "10mm", sinif: "dokum-yaz" });
+    return `${pbler.length > 1 ? `<h2>${pb === "TRY" ? T("TL") : pb === "gram" ? T("Altın (gram)") : esc(pb)}</h2>` : ""}<table class="cr-yz"><thead><tr><th>${T("Tarih")}</th><th>${T("Açıklama")}</th><th class="r">${T("Borç")}${pb === "TRY" ? " (TL)" : ""}</th><th class="r">${T("Alacak")}${pb === "TRY" ? " (TL)" : ""}</th><th class="r">${T("Bakiye")}${pb === "TRY" ? " (TL)" : ""}</th></tr></thead>
+      <tbody>${L.map(({ h, b }) => { const hs = h.hesap ? [h.kisi, h.hesap].filter(Boolean).join(" · ") : T("elden"), ac = [h.aciklama1, h.aciklama2].filter(Boolean).join(" · "); return `<tr><td>${fdate(h.tarih)}</td><td class="ac${ac.length > 72 ? " k3" : ac.length > 62 ? " k2" : ac.length > 52 ? " k1" : ""}">${esc(ac)}</td>
+        <td class="r">${+h.net < 0 ? fmtY(-h.net, pb) : ""}</td><td class="r">${+h.net > 0 ? fmtY(+h.net, pb) : ""}</td><td class="r">${fmtY(Math.abs(b), pb)} ${bA(b)}</td></tr>`; }).join("")}
+      <tr class="tot"><td colspan="2">${T("Toplam")}</td><td class="r">${fmtY(L.reduce((t, { h }) => t + Math.max(0, -h.net), 0), pb)}</td><td class="r">${fmtY(L.reduce((t, { h }) => t + Math.max(0, +h.net), 0), pb)}</td><td></td></tr>
+      <tr class="tot"><td colspan="4">${bakAd(b)}</td><td class="r">${fmtY(Math.abs(b), pb)} ${bA(b)}</td></tr></tbody></table>`; }).join("")}<div class="dip">${T("Borç: cariye verilen, Alacak: cariden alınan tutar. (B) borç bakiyesi, (A) alacak bakiyesi.")}</div>`, { kenar: "10mm", sinif: "dokum-yaz" });
   $("#crYeni", d).onclick = () => { closeDrawer(); openEntry({ values: { cari: ad }, onSaved: async () => { await cariAdlari(true); sonra?.(); } }); };
   $$("tr[data-hid]", d).forEach(tr => tr.onclick = () => { closeDrawer(); openEdit(+tr.dataset.hid); });
 }
@@ -13836,8 +13908,10 @@ async function nakitTakvim(B) {
 // (gerçekleşen ve planlanan, depolardaki açık çek/senetler dahil) toplamı — Excel'deki nakit akış sayfasının üst tablosu
 let nkBirSira = 0;
 // birikmiş net hesabı (işletme → tarih → tutar); Şirket durumu sayfası da kullanır
+// hesapsız girilen hayvan alış / satış kayıtları (Excel'den gelen eskiler dahil) satış bilgisidir, para değil: ödeme / tahsilat ayrıca sayılır
+async function nkHaricKat() { try { const M = typeof hymAyar === "function" ? await hymAyar() : null; return [M?.kat_alis, M?.kat_satis].filter(Boolean).map(Number); } catch { return []; } }
 async function nkBirikimHesapla(d, tarihler, yatDahil, today = todayISO()) {
-  let bir, yeni = true; bir = await S.api.nakitBirikim2(tarihler, today); if (!bir) { yeni = false; bir = await S.api.nakitBirikim(tarihler, "TRY"); }
+  let bir, yeni = true; bir = await S.api.nakitBirikim2(tarihler, today, await nkHaricKat()); if (!bir) { yeni = false; bir = await S.api.nakitBirikim(tarihler, "TRY"); }
   const bm = new Map(); for (const r of bir) { const k = r.isletme_id ?? "bos"; const g = bm.get(k) || { ad: r.isletme_id == null ? T("İşletmesiz") : r.isletme, v: {}, p: {} }; const yat = yatDahil ? 0 : (+r.yatirim || 0) + (+r.plan_yatirim || 0), top = yeni ? +r.devir + +r.gercek + +r.plan - yat : +r.toplam; g.v[r.tarih] = (g.v[r.tarih] || 0) + top; if (yeni) g.p[r.tarih] = { dv: +r.devir, g: +r.gercek, p: +r.plan, gel: +r.gelir || 0, gid: +r.gider || 0, yat: +r.yatirim || 0, dig: +r.diger || 0, py: +r.plan_yatirim || 0 }; bm.set(k, g); }
   // döviz plan kalemleri (ödenmemiş) günün kuruyla TL olarak eklenir
   for (const x of d.rows.map(r => nkTl(r, d.kur)).filter(r => r.dv && r.net != null && !r.odendi)) for (const t of tarihler) if (x.tarih <= t && (!yeni || t >= today)) { const k = x.isletme_id ?? "bos"; const g = bm.get(k) || { ad: x.isletme_id == null ? T("İşletmesiz") : x.isletme, v: {} }; g.v[t] = (g.v[t] || 0) + +x.net; bm.set(k, g); }
@@ -14042,7 +14116,7 @@ function openNakitEntry(preset = {}) {
   const d = openDrawer(ed ? T("Plan kaydını düzenle") : T("Yeni plan kaydı"), `
     ${+ed?.harcama > 0 && !ed?.elle_zaman && !ed?.kesin && !ed?.odendi ? `<div class="note"><span>${T("Bu tutarın {h} kısmı bu ekstre dönemindeki kart harcamalarından ve taksitli alışverişlerin bu döneme düşen taksitlerinden kendiliğinden eklendi. Kesinleştirene kadar yeni harcamalar eklenmeye devam eder. Tutarı değiştirirseniz o ana kadar girilmiş harcamalar yazdığınız tutarın içinde sayılır; yalnız sonra girilen harcamalar üstüne eklenir.", { h: money(ed.harcama) })}</span></div>` : ""}
     ${ed?.elle_zaman && !ed?.kesin && !ed?.odendi ? `<div class="note"><span>${T("Tutarı {t} tarihinde elle yazdınız; o andan önce girilmiş kart harcamaları bu tutarın içinde sayılır, sonra girilenler üstüne eklenir{h}.", { t: nkZaman(ed.elle_zaman), h: +ed.harcama > 0 ? T(" (şu ana kadar {v})", { v: money(ed.harcama) }) : "" })}</span></div>` : ""}
-    ${ed && OTO_KAYNAK.test(ed.kaynak || "") && !ed.odendi ? `<div class="note"><span>${(ed.kaynak || "").startsWith("surekli:") ? T("Bu kalem düzenli bir kalemden kendiliğinden yazıldı. Kaydederken yalnız bu kaydı mı yoksa düzenli kalemin kendisini mi (bundan sonrakiler) değiştireceğiniz sorulur.") : T("Bu kalem {k} kendiliğinden yazıldı. Burada değiştirirseniz bu kalem artık kendiliğinden güncellenmez; sildiğinizde yeniden yazılmaz.", { k: T(/^(kdv):/.test(ed.kaynak) ? "Notlar'daki KDV takibinden" : /^(mtv|trafik|kasko|muayene):/.test(ed.kaynak) ? "araç takibinden" : /^satis:/.test(ed.kaynak) ? "Satış sayfasındaki SGK ödemelerinden" : /^fatura:/.test(ed.kaynak) ? "Faturalar sayfasından" : /^nobet:/.test(ed.kaynak) ? "Nöbet sayfasından" : /^(hayvan|hymasraf):/.test(ed.kaynak) ? "Hayvancılık sayfasından" : /^pancar:/.test(ed.kaynak) ? "Şeker pancarı sayfasından" : /^destek:/.test(ed.kaynak) ? "Tarım › Destekler sayfasından": /^kira:/.test(ed.kaynak) ? "Tarım › ÇKS › Kira sözleşmelerinden": /^vade:/.test(ed.kaynak) ? "kart harcamalarından" : "Personel sayfasındaki ücretlerden") })}</span></div>` : ""}
+    ${ed && OTO_KAYNAK.test(ed.kaynak || "") && !ed.odendi ? `<div class="note"><span>${(ed.kaynak || "").startsWith("surekli:") ? T("Bu kalem düzenli bir kalemden kendiliğinden yazıldı. Kaydederken yalnız bu kaydı mı yoksa düzenli kalemin kendisini mi (bundan sonrakiler) değiştireceğiniz sorulur.") : T("Bu kalem {k} kendiliğinden yazıldı. Burada değiştirirseniz bu kalem artık kendiliğinden güncellenmez; sildiğinizde yeniden yazılmaz.", { k: T(/^(kdv):/.test(ed.kaynak) ? "Notlar'daki KDV takibinden" : /^(mtv|trafik|kasko|muayene):/.test(ed.kaynak) ? "araç takibinden" : /^satis:/.test(ed.kaynak) ? "Satış sayfasındaki SGK ödemelerinden" : /^fatura:/.test(ed.kaynak) ? "Faturalar sayfasından" : /^nobet:/.test(ed.kaynak) ? "Nöbet sayfasından" : /^(hayvan|hymasraf):/.test(ed.kaynak) ? "Hayvancılık sayfasından" : /^pancar:/.test(ed.kaynak) ? "Şeker pancarı sayfasından" : /^havuc:/.test(ed.kaynak) ? "Tarım › Havuç ödemelerinden" : /^hububat:/.test(ed.kaynak) ? "Tarım › Hububat ödemelerinden" : /^destek:/.test(ed.kaynak) ? "Tarım › Destekler sayfasından": /^kira:/.test(ed.kaynak) ? "Tarım › ÇKS › Kira sözleşmelerinden": /^vade:/.test(ed.kaynak) ? "kart harcamalarından" : "Personel sayfasındaki ücretlerden") })}</span></div>` : ""}
     ${ed?.hareket_id ? `<div class="note">${icon("link")}<span>${T("Bu kayıt bir hesap hareketine bağlı. Hareketin tarih ve tutarı değişirse bu kayıt da güncellenir.")} <button type="button" class="btn sm" id="nHrk">${T("Hareketi aç")}</button></span></div>` : ""}
     <div class="seg" role="group" aria-label="${esc(T("Kayıt türü"))}" id="nYon">${[["Çıkan", "Ödeme (çıkan)"], ["Giren", "Tahsilat (giren)"]].map(([k, t]) => `<button type="button" data-yon="${k}" aria-pressed="${v.yon === k}">${T(t)}</button>`).join("")}</div>
     <div class="frow"><label class="f">${T("Tarih")}<input class="i" type="date" id="nTarih" value="${v.tarih}"></label>
@@ -14179,6 +14253,8 @@ function openNakitEntry(preset = {}) {
 const nkPbDegis = (r, pb) => (!pb || pb === r.para_birimi ? {} : { para_birimi: pb, aciklama2: [r.aciklama2, r.tutar != null ? money(r.tutar, r.para_birimi) : r.para_birimi].filter(Boolean).join(" · ") });
 async function openNakitOde(r) {
   const dv = r.dv ? r : null; r = r._o || r;   // döviz kalemi: asıl kayıt + günün kuruyla TL tahmini
+  // hayvancılık çek / senet ve masraf vadesi: gelir / gider tahakkukta yazıldı; buradan oluşan hareket kategorisiz olur (raporlarda ikinci kez sayılmasın)
+  const tahk = /^(hayvan|hymasraf):/.test(r.kaynak || "") && ["Gelir", "Gider"].includes(kategori(r.kategori_id)?.tur), katR = tahk ? null : r.kategori_id;   // hayvancılıkta gelir / gider alış-satış gününde yazıldı: ödeme hareketi gelir-gider kategorisi almaz (Çek / Senet / Açık hesap gibi kategoriler kalır)
   if (r.sanal === "depo") {
     const od = S.lk.depoIslemleri.find(x => x.belge === r.belge && x.belge_tip === "odeme" && x.odeme === "kredi_karti");
     return openDepoEntry({ values: { isletme_id: r.isletme_id, depo_id: r.depo_id, islem_id: od?.id, tutar: r.tutar, vade: r.tarih } });
@@ -14255,7 +14331,7 @@ async function openNakitOde(r) {
     const k = kategori(r.kategori_id), hs = hesap(r.hesap_id), today = todayISO();
     // döviz kalemi TL hesaptan ödenecekse: tutar günün kuruyla TL önerilir (ödediğiniz TL'yi yazın; döviz hesabından ödüyorsanız para birimini değiştirin)
     const k0 = kismi(), oran = k0 && plan ? k0.od / plan : 1;
-    const values = { tarih: r.tarih < today ? r.tarih : today, kategori_id: r.kategori_id || "", isletme_id: r.isletme_id || "", tutar: dv ? r2k(Math.abs(dv.net) * oran) : k0 ? k0.od : r.tutar ?? null, para_birimi: dv ? "TRY" : r.para_birimi, aciklama1: r.aciklama1, aciklama2: r.aciklama2 };
+    const values = { tarih: r.tarih < today ? r.tarih : today, kategori_id: katR || "", isletme_id: r.isletme_id || "", tutar: dv ? r2k(Math.abs(dv.net) * oran) : k0 ? k0.od : r.tutar ?? null, para_birimi: dv ? "TRY" : r.para_birimi, aciklama1: r.aciklama1, aciklama2: r.aciklama2 };
     let mode = r.yon === "Giren" ? "giris" : "cikis";
     if (k?.rol === "kk_odeme" && hs?.tur === "Kredi Kartı") { mode = "transfer"; values.karsi_hesap_id = hs.id; values.aciklama1 = r.aciklama1 || null; }
     else if (hs && ["Banka", "Kasa", "Kredi Kartı"].includes(hs.tur)) values.hesap_id = hs.id;
@@ -14305,7 +14381,7 @@ async function openNakitOde(r) {
         const kart = kategori(r.kategori_id)?.rol === "kk_odeme" && hesap(r.hesap_id)?.tur === "Kredi Kartı" && r.yon === "Çıkan" ? +r.hesap_id : null;
         const rows = kart ? L.flatMap(x => { const tid = uuid(), b = { tarih, kategori_id: r.kategori_id ?? null, aciklama1: r.aciklama1 ?? null, aciklama2: r.aciklama2 ?? null, transfer_id: tid, tutar: x.t, para_birimi: r.para_birimi };
             return [{ ...b, hesap_id: +x.h, karsi_hesap_id: kart, yon: "Çıkan" }, { ...b, hesap_id: kart, karsi_hesap_id: +x.h, yon: "Giren" }]; })
-          : L.map(x => ({ tarih, hesap_id: +x.h, isletme_id: r.isletme_id ?? null, kategori_id: r.kategori_id ?? null, yon: r.yon, tutar: x.t, para_birimi: r.para_birimi,
+          : L.map(x => ({ tarih, hesap_id: +x.h, isletme_id: r.isletme_id ?? null, kategori_id: katR ?? null, yon: r.yon, tutar: x.t, para_birimi: r.para_birimi,
           aciklama1: r.aciklama1 ?? null, aciklama2: r.aciklama2 ?? null, personel: per, odeme_turu: per ? "Maaş" : null }));
         const res = await S.api.ekle(rows), ids = (res || []).map(x => x.id).filter((_, i) => !kart || i % 2 === 0);   // kartta yalnız çıkan ayaklar plana bağlanır
         let bi = 0; L.forEach((x, i) => { if (+x.t > +L[bi].t) bi = i; });
@@ -14621,7 +14697,7 @@ async function nakitAtlaEkle(keys) {
   await S.api.ayarKaydet("nakit_atla", { k: [...new Set([...L, ...keys])] });
 }
 // kendiliğinden yazılan kalemler: elle değiştirilince bir daha güncellenmez (elle_zaman), silinince yeniden yazılmaz (nakit_atla)
-const OTO_KAYNAK = /^(surekli|maas|nobetucret|sgkprim|muhtasar|kdv|mtv|trafik|kasko|muayene|satis|fatura|nobet|hayvan|hymasraf|pancar|vade|kcplan|kira|destek):/;
+const OTO_KAYNAK = /^(surekli|maas|nobetucret|sgkprim|muhtasar|kdv|mtv|trafik|kasko|muayene|satis|fatura|nobet|hayvan|hymasraf|pancar|vade|kcplan|kira|destek|havuc|hububat):/;
 const srTutar = (x, t) => { const L = (x.tutarlar || []).filter(y => y.bas <= t).sort((a, b) => a.bas.localeCompare(b.bas)); const y = L.pop(); return y ? (y.tutar == null ? null : +y.tutar) : null; };
 const srKaydir = (t, k) => { if (k === "yok") return t; let d = t; for (let i = 0; i < 20 && kartTatilMi(d); i++) d = addDays(d, k === "once" ? -1 : 1); return d; };
 const srAyGunu = (ay, g) => { const [y, m] = ay.split("-").map(Number), son = new Date(y, m, 0).getDate(); return `${ay}-${String(g === "son" ? son : Math.min(+g || 1, son)).padStart(2, "0")}`; };
@@ -15629,7 +15705,7 @@ async function backup() {
 // veri bütünlüğü kontrolü (Ayarlar)
 const BTL = { depo_yetim: ["Depo hareketi, silinmiş bir hesap hareketine bağlı", 1], nakit_yetim: ["Nakit akış kaydı, silinmiş bir hesap hareketine bağlı", 1],
   hareket_ayna_eksik: ["Depo ödemesi olan hesap hareketinin depo kaydı yok", 1], depo_ayna_eksik: ["Hesaptan yapılan depo ödemesinin hesap hareketi yok", 1],
-  cift_ayna: ["Aynı hesap hareketine bağlı birden fazla depo kaydı", 0], mukerrer: ["Olası mükerrer hesap hareketi (son 60 gün)", 0], depo_mukerrer: ["Olası mükerrer depo hareketi (son 60 gün)", 0], transfer_tek: ["Tek ayağı kalmış transfer", 0], belge_yetim: ["Kaydı silinmiş belge", 0], kaynak_yetim: ["Hayvancılık kaydı silinmiş ama hesap hareketi kalmış", 0] };
+  cift_ayna: ["Aynı hesap hareketine bağlı birden fazla depo kaydı", 0], mukerrer: ["Olası mükerrer hesap hareketi (son 60 gün)", 0], depo_mukerrer: ["Olası mükerrer depo hareketi (son 60 gün)", 0], transfer_tek: ["Tek ayağı kalmış transfer", 0], belge_yetim: ["Kaydı silinmiş belge", 0], kaynak_yetim: ["Hayvancılık ya da tarım kaydı silinmiş ama hesap hareketi kalmış", 0] };
 function btlBagla(m) {
   const S0 = $("#btlSonuc", m); if (!S0) return;
   const calis = async () => {
@@ -16868,6 +16944,7 @@ const hayvanOnce = async () => { if (typeof hayvanNakitEsitle !== "function") re
 const kcOnce = async () => { if (typeof kcNakitEsitle !== "function") return 0; try { const n = await kcNakitEsitle(); await nkYamaBosalt(); return n; } catch (e) { nkHata("Kart çekim planı", e); return 0; } };
 const destekOnce = async () => { if (typeof dsNakitEsitle !== "function") return 0; try { const n = await dsNakitEsitle(); await nkYamaBosalt(); return n; } catch (e) { nkHata("Tarımsal destekler", e); return 0; } };
 const kiraOnce = async () => { if (typeof krNakitEsitle !== "function") return 0; try { const n = await krNakitEsitle(); await nkYamaBosalt(); return n; } catch (e) { nkHata("Kira sözleşmeleri", e); return 0; } };
+const tarimVadeOnce = async () => { if (typeof tarimVadeEsitle !== "function") return 0; try { const n = await tarimVadeEsitle(); await nkYamaBosalt(); return n; } catch (e) { nkHata("Havuç / hububat çekleri", e); return 0; } };
 const pancarOnce = async () => { if (typeof pancarNakitEsitle !== "function") return 0; try { const n = await pancarNakitEsitle(); await nkYamaBosalt(); return n; } catch (e) { nkHata("Şeker pancarı", e); return 0; } };
 // tam eşitleme: aynı anda bekleyen bir tam eşitleme varsa yeni istek ona katılır (art arda kayıtlarda zincir üst üste kuyruğa girmez)
 let KASA_BEKLE = null;
@@ -16875,7 +16952,7 @@ const kasaNakitSirala = sessiz => {
   if (KASA_BEKLE) return KASA_BEKLE;
   return (KASA_BEKLE = nakitIsSirala(async () => {
     KASA_BEKLE = null; await nkZincirBas(); NK_CALISIYOR = true; NK_YAMA = []; NK_AYAR = new Map();
-    try { const n = (await kartTatilYukle(), 0) + (await satisOnce()) + (await faturaOnce()) + (await nobetOnce()) + (await ucretOnce()) + (await surekliOnce()) + (await kdvOnce()) + (await aracOnce()) + (await pancarOnce()) + (await hayvanOnce()) + (await kcOnce()) + (await kiraOnce()) + (await destekOnce()) + (await kasaNakitEsitle()) + (await kartNakitEsitle()); await nkYamaBosalt(); NK_SON = Date.now(); return n; }
+    try { const n = (await kartTatilYukle(), 0) + (await satisOnce()) + (await faturaOnce()) + (await nobetOnce()) + (await ucretOnce()) + (await surekliOnce()) + (await kdvOnce()) + (await aracOnce()) + (await pancarOnce()) + (await tarimVadeOnce()) + (await hayvanOnce()) + (await kcOnce()) + (await kiraOnce()) + (await destekOnce()) + (await kasaNakitEsitle()) + (await kartNakitEsitle()); await nkYamaBosalt(); NK_SON = Date.now(); return n; }
     finally { NK_YAMA = null; NK_AYAR = null; NK_CALISIYOR = false; nkZincirSon(); }
   }, sessiz));
 };
@@ -20592,7 +20669,8 @@ function pnAyar(a) {
   a = a && typeof a === "object" ? a : {};
   return { sezonlar: a.sezonlar && typeof a.sezonlar === "object" ? a.sezonlar : {}, kuspe_oran: a.kuspe_oran ?? 0.15, kuspe_ek_oran: a.kuspe_ek_oran ?? 0.05, kuspe_ek_esik: a.kuspe_ek_esik ?? 0.9, nakliye_kesinti: a.nakliye_kesinti ?? 0.04,
     nakit: a.nakit !== false, isletme_id: a.isletme_id ?? null, oranlar: { ...PN_ORAN0, ...(a.oranlar || {}) },
-    tam_adlar: a.tam_adlar && typeof a.tam_adlar === "object" ? a.tam_adlar : {} };   // tam_adlar: kişi id → randevu penceresindeki ad soyad
+    tam_adlar: a.tam_adlar && typeof a.tam_adlar === "object" ? a.tam_adlar : {},
+    sof: a.sof && typeof a.sof === "object" ? a.sof : {}, sofM: a.sofM && typeof a.sofM === "object" ? a.sofM : {} };   // sofM: mahsupta gider hareketi id → cari hareketi id   // sof: şoför nakliyesi ödeme hareketi id → bağlı fiş id'leri   // tam_adlar: kişi id → randevu penceresindeki ad soyad
 }
 const pnSA = (V, s) => { const x = V.ayar.sezonlar[s] || {}; return { fabrikalar: x.fabrikalar || {}, odeme_tarihi: x.odeme_tarihi || "", kapandi: !!x.kapandi, verim: x.verim || {}, tahsilat: { dahil: x.tahsilat?.dahil || [], haric: x.tahsilat?.haric || [] } }; };
 const pnFab = (V, s, f) => { const x = pnSA(V, s).fabrikalar[f] || {}; return { ...PN_FAB0, ...x, ozel: x.ozel || {} }; };
@@ -20619,8 +20697,8 @@ function pnUcret(V, f) {
 // fiş: fireli = net / (1 − fire), fire = fireli × fire %; fabrika nakliyesi net üzerinden (kesintili), şoför nakliyesi fireli üzerinden
 function pnFis(V, f) {
   const teslim = f.net != null && f.net !== "", net = teslim ? +f.net : 0, fire = f.fire == null ? 0 : +f.fire;
-  const fireli = teslim ? net / (1 - fire) : 0, u = teslim ? pnUcret(V, f) : null;
-  return { ...f, teslim, netKg: net, fireli, fireKg: fireli * fire, ucret: u, ucretYok: teslim && !!f.fabrika && !u,
+  const fireli = teslim ? Math.round(net / (1 - fire) / 10) * 10 : 0, u = teslim ? pnUcret(V, f) : null;   // fireli kg en yakın 10 kg (ör. 39.479,49 → 39.480)
+  return { ...f, teslim, netKg: net, fireli, fireKg: teslim ? fireli - net : 0, ucret: u, ucretYok: teslim && !!f.fabrika && !u,
     fabNak: u ? (net * +u.fab_ucret * (1 - V.ayar.nakliye_kesinti)) / 1000 : 0, sofNak: u ? (fireli * +u.sof_ucret) / 1000 : 0 };
 }
 function pnOzet(F) {
@@ -20729,11 +20807,14 @@ async function pancarNakitEsitle() {
   if (!V.ayar.nakit) return 0;
   const today = todayISO(), simdi = pnSezonOf(today), sezonlar = [...new Set(V.kota.map(k => +k.sezon))].filter(s => s >= simdi - 1);
   if (!sezonlar.length) return 0;
-  const plan = await S.api.nakitListe({ kategori_id: kat.id, from: addDays(today, -60) }, 0, 3000);
+  // plan: en eski sezonun başından (ödenmiş eski kalem de bulunsun; yoksa eşitleme geçmiş tarihli yeni kalem açardı)
+  const plan = await S.api.nakitListe({ kategori_id: kat.id, from: `${Math.min(...sezonlar)}-06-01` }, 0, 5000);
   if (plan.length && !("kaynak" in plan[0])) return 0;
+  const atla = await nakitAtla();   // kullanıcının sildiği kalem yeniden yazılmaz; elle girilen başka kalem de onun yerine benimsenmez
   let n = 0;
   for (const s of sezonlar) {
     const key = "pancar:" + s, SA = pnSA(V, s);
+    if (atla.has(key)) continue;
     TR.tah[s] = null; await pnTahsilat(s, true);
     const H = pnHesap(V, s, true);
     const alt = `${s + 1}-01-01`, ust = `${s + 1}-06-30`;
@@ -20753,7 +20834,7 @@ async function pancarNakitEsitle() {
       if (!x.aciklama2) p.aciklama2 = a2;
       if (tutar <= 0 && x.kaynak === key) { await S.api.nakitTopluSil([x.id]); n++; continue; }
       if (Object.keys(p).length) { await S.api.nakitGuncelle(x.id, p); n++; }
-    } else if (tutar > 0) {
+    } else if (tutar > 0 && !SA.kapandi) {   // kapanmış sezona yeni kalem açılmaz (bordro ile tahsilat arasındaki küsurat)
       const isl = V.ayar.isletme_id ?? S.lk.isletmeler.find(i => trFold(i.ad) === trFold("Şirket"))?.id ?? null;
       n += await nkEkleParca([{ tarih, kisi_id: null, hesap_id: null, isletme_id: isl, kategori_id: kat.id, yon: "Giren", tutar, para_birimi: "TRY", kesin: SA.kapandi, odendi: false,
         aciklama1: H.ana || null, aciklama2: a2, kaynak: key }]);
@@ -20762,7 +20843,8 @@ async function pancarNakitEsitle() {
   // kota fazlası (beklenen verimden): ayrı tahmini kalem
   if (!CK.V) { try { CK.V = await ckVeri(); } catch {} }
   for (const s of sezonlar) {
-    const key = "pancar:" + s + ":fazla", SA = pnSA(V, s), H = pnHesap(V, s, true), Vr = pnVerim(V, H), x = plan.find(r => r.kaynak === key);
+    const key = "pancar:" + s + ":fazla"; if (atla.has(key)) continue;
+    const SA = pnSA(V, s), H = pnHesap(V, s, true), Vr = pnVerim(V, H), x = plan.find(r => r.kaynak === key);
     if (x && (x.odendi || x.hareket_id || x.elle_zaman)) continue;
     const tutar = SA.kapandi || !Vr.nakit ? 0 : Math.round(Vr.net), a2 = T("Kota fazlası tahmini · {t} ton × {f}", { t: pnN(Vr.fazla, 0), f: pnN(Vr.fiyat, 0) });
     if (tutar <= 0) { if (x) { await S.api.nakitTopluSil([x.id]); n++; } continue; }
@@ -20927,7 +21009,7 @@ function pnFisCiz(B, H) {
   const tarlalar = V.tarla.filter(t => +t.sezon === +s), kisiL = [...new Set([...H.kisiler, ...S.lk.kisiler.filter(k => k.aktif !== false).map(k => k.id)])];
   const fk = TR.fk && H.kisiler.includes(+TR.fk) ? +TR.fk : "", fd = TR.fd, ff = TR.ff;
   const uniq = k => [...new Set(H.fis.map(f => f[k]).filter(Boolean))].sort((a, b) => String(a).localeCompare(String(b), "tr"));
-  const L = H.fis.filter(f => (!fk || +f.kisi_id === fk) && (!fd || (fd === "t" ? f.teslim : !f.teslim)) && (!ff.ta || f.tarla === ff.ta) && (!ff.pl || f.plaka === ff.pl) && (!ff.yk || f.yukleme === ff.yk)
+  const L = H.fis.filter(f => (!fk || +f.kisi_id === fk) && (!ff.bas || f.tarih >= ff.bas) && (!ff.bit || f.tarih <= ff.bit) && (!fd || (fd === "t" ? f.teslim : !f.teslim)) && (!ff.ta || f.tarla === ff.ta) && (!ff.pl || f.plaka === ff.pl) && (!ff.yk || f.yukleme === ff.yk)
     && (!ff.nk || (f.teslim && (ff.nk === "fab" ? !f.fab_odendi : !f.sof_odendi)))).sort((a, b) => b.tarih.localeCompare(a.tarih) || (a.vardiya || "").localeCompare(b.vardiya || "") || a.id - b.id);
   const oz = pnOzet(L), yok = L.filter(f => f.ucretYok).length;
   const nakAl = L.reduce((t, f) => t + f.fabNak, 0), nakAlY = L.filter(f => !f.fab_odendi).reduce((t, f) => t + f.fabNak, 0), sof = L.reduce((t, f) => t + f.sofNak, 0), sofY = L.filter(f => !f.sof_odendi).reduce((t, f) => t + f.sofNak, 0);
@@ -20958,16 +21040,18 @@ function pnFisCiz(B, H) {
         <div class="seg" role="group" aria-label="${esc(T("Durum"))}">${[["", "Tümü"], ["t", "Teslim"], ["r", "Randevu"]].map(([k, t]) => `<button data-fd="${k}" aria-pressed="${fd === k}">${T(t)}</button>`).join("")}</div></div>
       <div class="pn-filtre">
         <label class="f">${T("Müstahsil")}<select class="i" id="pfFk"><option value="">${T("Tümü")}</option>${H.kisiler.map(k => `<option value="${k}" ${k === fk ? "selected" : ""}>${esc(kisiAd(k))}</option>`).join("")}</select></label>
+        <label class="f">${T("Başlangıç")}<input class="i" type="date" data-ff="bas" value="${ff.bas || ""}"></label>
+        <label class="f">${T("Bitiş")}<input class="i" type="date" data-ff="bit" value="${ff.bit || ""}"></label>
         <label class="f">${T("Tarla")}<select class="i" data-ff="ta">${pnOpt(uniq("tarla"), ff.ta, T("Tümü"))}</select></label>
         <label class="f">${T("Plaka")}<select class="i" data-ff="pl">${pnOpt(uniq("plaka"), ff.pl, T("Tümü"))}</select></label>
         <label class="f">${T("Yükleme")}<select class="i" data-ff="yk"><option value="">${T("Tümü")}</option>${PN_YUKLEME.map(v => `<option value="${v}" ${v === ff.yk ? "selected" : ""}>${esc(T(v))}</option>`).join("")}</select></label>
         <label class="f">${T("Nakliye")}<select class="i" data-ff="nk"><option value="">${T("Tümü")}</option><option value="fab" ${ff.nk === "fab" ? "selected" : ""}>${T("Fabrikadan alınmamış")}</option><option value="sof" ${ff.nk === "sof" ? "selected" : ""}>${T("Şoföre ödenmemiş")}</option></select></label>
-        ${fk || ff.ta || ff.pl || ff.yk || ff.nk ? `<button class="btn sm ghost" id="pfTemizle">${T("Filtreleri temizle")}</button>` : ""}</div>
+        ${fk || ff.ta || ff.pl || ff.yk || ff.nk || ff.bas || ff.bit ? `<button class="btn sm ghost" id="pfTemizle">${T("Filtreleri temizle")}</button>` : ""}</div>
       <div class="sec-bar sec-tek" id="pfSec" hidden></div>
       ${yok ? `<div class="note warn" style="margin:12px 16px 0"><span>${T("{n} fişin tarihine ve bölgesine uyan nakliye ücreti yok; nakliye tutarları 0 hesaplandı. <b>Fiyatlar ve ayarlar › Nakliye ücretleri</b> bölümünden bu sezonun ücretlerini girin.", { n: yok })}</span></div>` : ""}
       ${L.length ? `<div class="tw"><table class="t pn-f"><thead><tr>${secTh()}<th>${T("Tarih")}</th><th>${T("Vardiya")}</th><th>${T("Müstahsil")}</th><th>${T("Tarla")}</th><th>${T("Barkod")}</th><th class="r">${T("Net (kg)")}</th><th class="r">${T("Fire %")}</th><th class="r">${T("Fireli (kg)")}</th><th class="r">${T("Polar")}</th><th>${T("Plaka")}</th><th>${T("Yükleme")}</th>
           <th class="r" title="${esc(T("Fabrikanın ödediği nakliye (kesinti sonrası)"))}">${T("Fab. nakliye")}</th><th class="r" title="${esc(T("Şoföre ödenecek nakliye"))}">${T("Şoför")}</th><th title="${esc(T("Fabrika nakliyesi alındı / şoföre ödendi"))}">${T("Alındı · ödendi")}</th></tr></thead>
-        <tbody>${L.map(f => `<tr data-fid="${f.id}" class="${f.teslim ? "" : "pn-rdv"} ${!f.teslim && f.tarih < today ? "pn-gec" : ""}">${secHucre(f.id)}<td class="num">${fdate(f.tarih)}</td><td class="muted">${esc(f.vardiya || "")}</td><td>${esc(kisiAd(f.kisi_id))}</td><td>${esc(f.tarla || "")}</td><td class="num muted">${esc(f.barkod || f.fis_no || "")}</td>
+        <tbody>${L.map(f => `<tr data-fid="${f.id}" class="${f.teslim ? "" : "pn-rdv"} ${!f.teslim && f.tarih < today ? "pn-gec" : ""} ${f.teslim && f.fab_odendi ? "pn-fab" : ""} ${f.teslim && f.sof_odendi ? "pn-sof" : ""}">${secHucre(f.id)}<td class="num">${fdate(f.tarih)}</td><td class="muted">${esc(f.vardiya || "")}</td><td>${esc(kisiAd(f.kisi_id))}</td><td>${esc(f.tarla || "")}</td><td class="num muted">${esc(f.barkod || f.fis_no || "")}</td>
           ${f.teslim ? `<td class="r num">${pnN(f.netKg)}</td><td class="r num">${f.fire != null ? pnN(+f.fire * 100, 2) : ""}</td><td class="r num">${pnN(f.fireli)}</td><td class="r num">${f.polar != null ? pnN(f.polar, 2) : ""}</td>` : `<td colspan="4"><span class="badge ${f.tarih < today ? "warn" : ""}">${f.tarih < today ? T("randevu · teslim girilmedi") : T("randevu")}</span></td>`}
           <td class="num">${esc(f.plaka || "")}</td><td>${f.yukleme ? esc(T(f.yukleme)) : ""}</td>
           <td class="r num ${f.ucretYok ? "pn-yok" : ""}">${f.teslim ? (f.ucretYok ? `<span title="${esc(T("Nakliye ücreti yok"))}">—</span>` : nf2.format(f.fabNak)) : ""}</td><td class="r num">${f.teslim && !f.ucretYok ? nf2.format(f.sofNak) : ""}</td>
@@ -21000,16 +21084,20 @@ function pnFisCiz(B, H) {
   };
   g("pfFk").onchange = e => { TR.fk = e.target.value; trCiz(); };
   $$("[data-ff]", B).forEach(el => el.onchange = () => { TR.ff[el.dataset.ff] = el.value; trCiz(); });
-  $("#pfTemizle", B)?.addEventListener("click", () => { TR.fk = ""; TR.ff = { ta: "", pl: "", yk: "", nk: "" }; trCiz(); });
+  $("#pfTemizle", B)?.addEventListener("click", () => { TR.fk = ""; TR.ff = { ta: "", pl: "", yk: "", nk: "", bas: "", bit: "" }; trCiz(); });
   $$("[data-fd]", B).forEach(b => b.onclick = () => { TR.fd = b.dataset.fd; trCiz(); });
   const tb = $(".pn-f tbody", B), bulF = k => H.fis.find(f => String(f.id) === String(k));
   // seçilen fişlerin toplamı: araç, miktar (fireli), fire, net, polar (ağırlıklı), fabrika ve şoför nakliyesi
   // randevu satırına tıklayınca WhatsApp'a kopyalanacak bilgi penceresi (✎ düzenleme açar)
   tb?.addEventListener("click", e => { if (e.target.closest("input,button,a,label,.sc")) return; const tr = e.target.closest("tr.pn-rdv[data-fid]"); if (tr) pnRandevuKart(H, bulF(tr.dataset.fid)); });
-  secimBagla(tb, "pancarFis", { ac: k => pnFisFormu(H, bulF(k)), bar: $("#pfSec", B), sil: { yap: async keys => { const F = keys.map(bulF).filter(Boolean); for (const f of F) await S.api.pancarFisSil(f.id); await trYenile(); return F.length; } }, ozet: keys => { const F = keys.map(bulF).filter(Boolean), o = pnOzet(F);
+  secimBagla(tb, "pancarFis", { ac: k => pnFisFormu(H, bulF(k)), bar: $("#pfSec", B), sil: { yap: async keys => { const F = keys.map(bulF).filter(Boolean), B_ = F.filter(f => pnSofBagli(f.id));
+    if (B_.length) { toast(T("{n} fiş hesaba işlenmiş bir şoför ödemesine bağlı; bunlar silinmedi. Önce şoför işaretini kaldırın.", { n: B_.length }), true); }
+    const S_ = F.filter(f => !pnSofBagli(f.id)); for (const f of S_) await S.api.pancarFisSil(f.id); await trYenile(); return S_.length; } }, ozet: keys => { const F = keys.map(bulF).filter(Boolean), o = pnOzet(F);
     return `<span>${T("{n} araç", { n: `<b>${o.araba}</b>` })}${o.randevu ? ` · ${T("{n} randevu", { n: o.randevu })}` : ""}</span><span>${T("Miktar")} <b class="num">${pnN(o.fireli)} kg</b></span><span>${T("Fire")} <b class="num">${pnN(o.fire)} kg</b> (%${pnN(o.fireOran * 100, 2)})</span>
       <span>${T("Net")} <b class="num">${pnN(o.net)} kg</b></span><span>${T("Polar")} <b class="num">${o.araba ? pnN(o.polar, 2) : "—"}</b></span><span>${T("Fab. nakliye")} <b class="num">${money(o.fabNak)}</b></span><span>${T("Şoför")} <b class="num">${money(o.sofNak)}</b></span>`; } });
   tb?.addEventListener("change", async e => { const cb = e.target.closest("[data-od]"); if (!cb) return; const id = +cb.closest("tr").dataset.fid;
+    if (cb.dataset.od === "sof_odendi") { e.preventDefault(); const ac = cb.checked; cb.checked = !ac; return ac ? pnSofOde(H, L, id) : pnSofGeri(H, id); }   // şoför: hesaba işleme penceresi
+    cb.closest("tr").classList.toggle(cb.dataset.od === "fab_odendi" ? "pn-fab" : "pn-sof", cb.checked);
     try { await S.api.pancarFisKaydet({ id, [cb.dataset.od]: cb.checked }); await trYenile(); } catch (er) { toast(errMsg(er), true); } });
 }
 function pnFisFormu(H, f) {
@@ -21028,7 +21116,7 @@ function pnFisFormu(H, f) {
       <label class="f">${T("Yükleme")}<select class="i" id="feY"><option value="">—</option>${PN_YUKLEME.map(v => `<option value="${v}" ${v === f.yukleme ? "selected" : ""}>${esc(T(v))}</option>`).join("")}</select></label></div>
     <div class="frow three"><label class="f">${T("Fabrika")}<select class="i" id="feF">${pnOpt(pnFabL(H), f.fabrika || "")}</select></label><label class="f">${T("Fabrika bölgesi")}<select class="i" id="feFb">${pnOpt(pnFabBolgeL(f.fabrika), f.fabrika_bolge || "")}</select></label>
       <label class="f">${T("Tarla bölgesi")}<input class="i" id="feTb" list="feTbL" value="${esc(f.tarla_bolge || "")}"><datalist id="feTbL"></datalist></label></div>
-    <div class="frow"><label class="switch"><input type="checkbox" id="feFo" ${f.fab_odendi ? "checked" : ""}> ${T("Fabrika nakliyesi alındı")}</label><label class="switch"><input type="checkbox" id="feSo" ${f.sof_odendi ? "checked" : ""}> ${T("Şoföre ödendi")}</label></div>
+    <div class="frow"><label class="switch"><input type="checkbox" id="feFo" ${f.fab_odendi ? "checked" : ""}> ${T("Fabrika nakliyesi alındı")}</label><label class="switch" ${pnSofBagli(f.id) ? `title="${esc(T("Bu fiş hesaba işlenmiş bir şoför ödemesine bağlı; işareti listedeki şoför kutusundan kaldırın (ödeme kaydı da geri alınır)."))}"` : ""}><input type="checkbox" id="feSo" ${f.sof_odendi ? "checked" : ""} ${pnSofBagli(f.id) ? "disabled" : ""}> ${T("Şoföre ödendi")}</label></div>
     <label class="f">${T("Açıklama")}<input class="i" id="feA" value="${esc(f.aciklama || "")}"></label>
     ${f.teslim ? `<div class="hint">${T("Fireli {a} kg · fire {b} kg", { a: pnN(f.fireli), b: pnN(f.fireKg) })}${f.ucret ? ` · ${T("nakliye: fabrika {x}, şoför {y}", { x: nf2.format(f.fabNak), y: nf2.format(f.sofNak) })}` : ""}</div>` : ""}`,
     `<button class="btn danger left" id="feSil">${T("Sil")}</button><button class="btn" id="feVz">${T("Vazgeç")}</button><button class="btn primary" id="feK2">${T("Kaydet")}</button>`);
@@ -21047,6 +21135,7 @@ function pnFisFormu(H, f) {
     } catch (er) { toast(errMsg(er), true); }
   };
   g("feSil").onclick = async () => {
+    if (pnSofBagli(f.id)) return toast(T("Bu fiş hesaba işlenmiş bir şoför ödemesine bağlı. Önce listede şoför işaretini kaldırın (ödeme kaydı geri alınır), sonra silin."), true);
     if (!(await confirmBox(T("{t} tarihli {k} fişi silinsin mi?", { t: fdate(f.tarih), k: esc(kisiAd(f.kisi_id)) })))) return;
     try { await S.api.pancarFisSil(f.id); toast(T("Silindi")); closeDrawer(); await trYenile(); } catch (er) { toast(errMsg(er), true); }
   };
@@ -21204,7 +21293,7 @@ function pnAvansFormu(H, a) {
   g("aeSil").onclick = async () => {
     await bagP.catch(() => {});
     if (!(await confirmBox(T("{t} tarihli {v} tutarındaki avans silinsin mi?", { t: fdate(a.tarih), v: money(a.tutar) }) + (bag ? `<br>${T("Hesaba işlenen hareket de silinir.")}` : "")))) return;
-    try { await S.api.pancarAvansSil(a.id); if (bag) { await hiEsitle(a.hareket_id, null); await hiOnbellek(tah, null, a.hareket_id); } toast(T("Silindi")); closeDrawer(); await trYenile(); } catch (er) { toast(errMsg(er), true); }
+    try { if (bag) { await hiEsitle(a.hareket_id, null); await hiOnbellek(tah, null, a.hareket_id); } await S.api.pancarAvansSil(a.id); toast(T("Silindi")); closeDrawer(); await trYenile(); } catch (er) { toast(errMsg(er), true); }
   };
 }
 
@@ -21247,7 +21336,7 @@ function pnGoster(c, r) {
 function pnTablo(id, cols, rows, yeni, { dolu = false } = {}) {
   PN_KAYIT[id] = new Map(rows.map(r => [String(r.id), r]));
   // giriş satırı: özel varsayılanı olmayan tarih kutusu bugünle, diğerleri boş başlar (kayıttan sonra da)
-  if (yeni) { yeni = { ...yeni }; for (const c of cols) if (c.tip === "tarih" && !yeni[c.k]) yeni[c.k] = todayISO(); }
+  if (yeni) { yeni = { ...yeni }; for (const c of cols) if (c.tip === "tarih" && !c.bos && !yeni[c.k]) yeni[c.k] = todayISO(); }
   const gen = c => (dolu && c.wd) || c.w || (c.salt ? 90 : PN_GEN[c.tip || "metin"]), top = cols.reduce((t, c) => t + gen(c), 0) + 52 + 58;
   const hucre = c => {
     if (c.salt) return "<td></td>";
@@ -21481,6 +21570,78 @@ function pnAyarCiz(B, H) {
   pnTabloBagla(B, "pt", tCols, { kaydet: (id, p) => S.api.pancarTarlaKaydet({ id, ...p }), sil: id => S.api.pancarTarlaSil(id), ekle: r => S.api.pancarTarlaKaydet({ sezon: +s, ...r }) });
 }
 
+/* ---------- şoför nakliyesi ödemesi: hesaba işle (tek hareket, birden çok fiş) ya da yalnız işaretle ---------- */
+// fişlerin tarih aralığı: "01/10 - 31/10/2026" (yıl farklıysa iki yıl da, tek günse tek tarih)
+function pnTarihAralik(F) {
+  const T_ = F.map(f => f.tarih).sort(), a = T_[0], b = T_.at(-1); if (!a) return "";
+  const g = (d, y) => `${d.slice(8, 10)}/${d.slice(5, 7)}${y ? "/" + d.slice(0, 4) : ""}`;
+  return a === b ? g(a, true) : `${g(a, a.slice(0, 4) !== b.slice(0, 4))} - ${g(b, true)}`;
+}
+// fiş, hesaba işlenmiş / mahsup edilmiş bir şoför ödemesine bağlı mı (bağlıysa ödeme kaydının id'si)
+const pnSofBagli = id => { const sof = TR.V?.ayar?.sof || {}; return Object.keys(sof).find(k => (sof[k] || []).map(Number).includes(+id)) || null; };
+function pnSofOde(H, L, id) {
+  const f0 = H.fis.find(f => f.id === id); if (!f0) return;
+  // aynı plakanın (yoksa listedeki) ödenmemiş diğer teslimleri de seçilebilir; açılışta yalnız tıklanan seçili
+  const A = L.filter(f => f.teslim && !f.sof_odendi && !f.ucretYok && (f.id === id || (f0.plaka ? f.plaka === f0.plaka : true))).sort((a, b) => a.tarih.localeCompare(b.tarih));
+  const KG = S.lk.kategoriler.filter(k => k.aktif !== false && k.tur === "Gider").sort((a, b) => a.ad.localeCompare(b.ad, "tr")), kat0 = (katBul("Nakliye") || KG.find(k => /nakliye/.test(trFold(k.ad))))?.id;
+  const isl = TR.V.ayar.isletme_id ?? S.lk.isletmeler.find(i => trFold(i.ad) === trFold("Şirket"))?.id ?? null;
+  const d = openDrawer(T("Şoför nakliyesi ödendi"), `
+    <div class="hint" style="margin-bottom:8px">${T("Seçilen fişlerin şoför nakliyesi tek ödeme olarak hesaba işlenir; fişler \"ödendi\" işaretlenir. Hesaba işlemeden yalnız işaretlemek için \"Yalnız işaretle\".")}</div>
+    <div class="tw"><table class="t"><thead><tr><th></th><th>${T("Tarih")}</th><th>${T("Plaka")}</th><th>${T("Müstahsil")}</th><th class="r">${T("Fireli (kg)")}</th><th class="r">${T("Şoför")}</th></tr></thead>
+      <tbody>${A.map(f => `<tr><td><input type="checkbox" data-sf="${f.id}" ${f.id === id ? "checked" : ""}></td><td class="num">${fdate(f.tarih)}</td><td class="num">${esc(f.plaka || "")}</td><td>${esc(kisiAd(f.kisi_id))}</td><td class="r num">${pnN(f.fireli)}</td><td class="r num">${nf2.format(f.sofNak)}</td></tr>`).join("")}</tbody></table></div>
+    <div class="frow" style="margin-top:10px"><label class="f">${T("Ödeme tarihi")}<input class="i" type="date" id="sfT" value="${todayISO()}"></label><label class="f">${T("Tutar")}<input class="i amount" id="sfU" inputmode="decimal"></label></div>
+    <div class="seg" id="sfS" role="group" style="margin:4px 0 8px"><button type="button" data-sfs="h" aria-pressed="true">${T("Hesaptan ödendi")}</button><button type="button" data-sfs="m" aria-pressed="false" title="${esc(T("Şoförün carideki borcundan düşülür; para çıkmaz"))}">${T("Cariden mahsup")}</button></div>
+    <div class="frow"><label class="f" id="sfHL">${T("Hesap")}${hiSecim('id="sfH"', hiSon("pnsof"), T("Hesap seçin"))}</label>
+      <label class="f" id="sfCL" hidden>${T("Cari (şoför)")}<input class="i" id="sfC" list="sfCLs" autocomplete="off" placeholder="${esc(T("Hesaplar › Cariler'deki ad"))}"><datalist id="sfCLs"></datalist></label>
+      <label class="f">${T("Kategori")}<select class="i" id="sfK"><option value="">—</option>${KG.map(k => `<option value="${k.id}" ${k.id === kat0 ? "selected" : ""}>${esc(k.ad)}</option>`).join("")}</select></label></div>
+    <label class="f">${T("Açıklama")}<input class="i" id="sfA" value="${esc([f0.plaka, T("şoför nakliyesi")].filter(Boolean).join(" · "))}"></label>`,
+    `<button class="btn left" id="sfY" title="${esc(T("Hesap hareketi oluşmaz"))}">${T("Yalnız işaretle")}</button><button class="btn" id="sfV">${T("Vazgeç")}</button><button class="btn primary" id="sfK2">${T("Hesaba işle ve işaretle")}</button>`);
+  const g = x => $("#" + x, d), sec = () => $$("[data-sf]:checked", d).map(c => A.find(f => f.id === +c.dataset.sf)).filter(Boolean);
+  let mod = "h"; $$("[data-sfs]", d).forEach(b => b.onclick = () => { mod = b.dataset.sfs; $$("[data-sfs]", d).forEach(x => x.setAttribute("aria-pressed", x === b)); g("sfHL").hidden = mod !== "h"; g("sfCL").hidden = mod !== "m";
+    g("sfK2").textContent = mod === "m" ? T("Mahsup et ve işaretle") : T("Hesaba işle ve işaretle"); if (mod === "m") g("sfC").focus(); });
+  cariAdlari().then(L => { const dl = g("sfCLs"); if (dl) dl.innerHTML = L.map(a => `<option value="${esc(a)}">`).join(""); }).catch(() => {});
+  let elle = false; g("sfU").oninput = () => { elle = true; };
+  const tut = () => { if (!elle) g("sfU").value = fmtInput(Math.round(sec().reduce((t, f) => t + f.sofNak, 0) * 100) / 100); };
+  d.addEventListener("change", e => { if (e.target.matches("[data-sf]")) tut(); }); tut();
+  g("sfV").onclick = closeDrawer;
+  const isaretle = async F => { for (const f of F) await S.api.pancarFisKaydet({ id: f.id, sof_odendi: true }); };
+  g("sfY").onclick = async () => { const F = sec(); if (!F.length) return toast(T("Fiş seçin."), true); try { await isaretle(F); closeDrawer(); toast(T("{n} fiş işaretlendi", { n: F.length })); await trYenile(); } catch (er) { toast(errMsg(er), true); } };
+  g("sfK2").onclick = async () => {
+    const F = sec(), u = pnSayi(g("sfU").value), hs = +g("sfH").value || null;
+    if (!F.length) return toast(T("Fiş seçin."), true); if (!(u > 0)) { g("sfU").focus(); return toast(T("Tutarı yazın."), true); }
+    if (mod === "m") {   // cariden mahsup: hesapsız iki kayıt — nakliye gideri ve şoförün carisine aynı tutarda "Giren" (borcu düşer)
+      const cari = g("sfC").value.trim(); if (!cari) { g("sfC").focus(); return toast(T("Cari adını yazın."), true); }
+      const tarih = g("sfT").value || todayISO(), a2 = T("{n} fiş · {kg} kg", { n: F.length, kg: pnN(F.reduce((t, f) => t + f.fireli, 0)) }), ek = { kaynak: "pnsof", kid: F[0].id }, ar = T("{t} Pancar nakliyesi", { t: pnTarihAralik(F) });
+      try {
+        const [x1, x2] = await S.api.ekle([{ tarih, hesap_id: null, yon: "Çıkan", tutar: Math.round(u * 100) / 100, para_birimi: "TRY", kategori_id: +g("sfK").value || null, isletme_id: isl, aciklama1: g("sfA").value.trim() || null, aciklama2: T("{a} · {c} carisinden mahsup", { a: `${pnTarihAralik(F)} · ${a2}`, c: cari }), ek },
+          { tarih, hesap_id: null, yon: "Giren", tutar: Math.round(u * 100) / 100, para_birimi: "TRY", kategori_id: null, isletme_id: null, cari, aciklama1: ar, aciklama2: a2, ek }]);
+        await isaretle(F); await pnAyarYaz(a => { a.sof = { ...(a.sof || {}), [x1.id]: F.map(f => f.id) }; a.sofM = { ...(a.sofM || {}), [x1.id]: x2.id }; });
+        closeDrawer(); toast(T("{c} carisinden mahsup edildi · {n} fiş", { c: cari, n: F.length })); await trYenile();
+      } catch (er) { toast(errMsg(er), true); }
+      return;
+    }
+    if (!hs) { g("sfH").focus(); return toast(T("Hesap seçin."), true); }
+    try {
+      const hid = await hiEsitle(null, { tarih: g("sfT").value || todayISO(), hesap_id: hs, yon: "Çıkan", tutar: u, kategori_id: +g("sfK").value || null, isletme_id: isl,
+        aciklama1: g("sfA").value.trim() || null, aciklama2: `${T("{t} Pancar nakliyesi", { t: pnTarihAralik(F) })} · ${T("{n} fiş · {kg} kg", { n: F.length, kg: pnN(F.reduce((t, f) => t + f.fireli, 0)) })}`, kaynak: "pnsof", kid: F[0].id });
+      hiSonYaz("pnsof", null, hs); await isaretle(F);
+      if (hid) await pnAyarYaz(a => { a.sof = { ...(a.sof || {}), [hid]: F.map(f => f.id) }; });
+      closeDrawer(); toast(T("{h} hesabına işlendi · {n} fiş", { h: hiHesapAd(hs), n: F.length })); await trYenile();
+    } catch (er) { toast(errMsg(er), true); }
+  };
+}
+// işaret kaldırılınca: bağlı ödeme hareketi varsa silinip o ödemedeki bütün fişlerin işareti kaldırılabilir
+async function pnSofGeri(H, id) {
+  const sof = TR.V.ayar.sof || {}, hid = Object.keys(sof).find(k => (sof[k] || []).includes(id)), ids = hid ? sof[hid] : [id];
+  try {
+    if (hid) { if (!(await confirmBox(T("Bu fiş, hesaba işlenmiş bir şoför ödemesine bağlı ({n} fiş). Hesap hareketi silinip bu fişlerin \"ödendi\" işareti kaldırılsın mı?", { n: ids.length }), T("Sil ve kaldır")))) return;
+      const m = TR.V.ayar.sofM?.[hid]; await S.api.sil(+hid); if (m) await S.api.sil(+m);   // silinemezse durur: işaret ve eşleşme kalır, yetim hareket oluşmaz
+      await pnAyarYaz(a => { const o = { ...(a.sof || {}) }; delete o[hid]; a.sof = o; const om = { ...(a.sofM || {}) }; delete om[hid]; a.sofM = om; }); }
+    for (const x of ids) await S.api.pancarFisKaydet({ id: x, sof_odendi: false });
+    await trYenile();
+  } catch (er) { toast(errMsg(er), true); }
+}
+
 /* =====================================================================
    TARIM · HAVUÇ — Excel'deki "Havuç"
    Havuç alıcı firmaya sözleşmeyle üretilir. Teslim edilen miktardan fire (%3) düşülür; net × fiyat = havuç bedeli.
@@ -21542,7 +21703,7 @@ function hvEsle(H, tah) {
   for (const o of H.od) if (o.hareket_id && tah.some(r => r.id === +o.hareket_id)) { kul.add(+o.hareket_id); esl.set(o.id, +o.hareket_id); }
   for (const o of H.od) {
     if (esl.has(o.id)) continue;
-    const r = tah.find(r => !kul.has(r.id) && !baska.has(r.id) && Math.abs(+r.tutar - +o.tutar) < 1 && Math.abs(dayDiff(r.tarih, o.tarih)) <= 3);
+    const r = tah.find(r => !kul.has(r.id) && !baska.has(r.id) && Math.abs(+r.tutar - +o.tutar) < 1 && Math.abs(dayDiff(r.tarih, o.vade || o.tarih)) <= 3);   // çek / vadeli: para vade günü girer
     if (r) { kul.add(r.id); esl.set(o.id, r.id); }
   }
   const today = todayISO();
@@ -21594,7 +21755,7 @@ function hvCiz() {
         : `<tr><td colspan="8"><div class="empty">${T("Bu sezonda teslim yok.")}</div></td></tr>`}</tbody></table></div>`;
   const isCols = [{ k: "ciftci", l: "Çiftçi", wd: 110 }, { k: "is_turu", l: "İş", list: "hvIsL", wd: 72 }, { k: "miktar", l: "Alan / sefer", tip: "sayi", d: 1, wd: 70 }, { k: "birim", l: "Fiyat", tip: "sayi", wd: 76 },
     { k: "tutar", l: "Tutar", tip: "sayi", zorunlu: true, wd: 86 }, { k: "aciklama", l: "Açıklama", wd: 90 }];
-  const odCols = [{ k: "tarih", l: "Tarih", tip: "tarih", zorunlu: true, wd: 98 }, { k: "tutar", l: "Tutar", tip: "sayi", zorunlu: true, wd: 96 }, { k: "aciklama", l: "Açıklama", wd: 150 },
+  const odCols = [{ k: "tarih", l: "Tarih", tip: "tarih", zorunlu: true, wd: 98 }, { k: "vade", l: "Vade", tip: "tarih", bos: true, wd: 92, t: "Çek, senet ya da vadeli ödemede paranın hesaba gireceği gün: tutar o gün nakit akışa beklenen giriş olarak yazılır. Tahsil edilince nakit akışta \"tahsil edildi\" yapın (gelir o gün yazılır). Vadeli satır hesaba işlenmez." }, { k: "tutar", l: "Tutar", tip: "sayi", zorunlu: true, wd: 96 }, { k: "aciklama", l: "Açıklama", wd: 150 },
     { k: "_h", l: "Hesapta", salt: r => (tah ? (esl.has(r.id) ? `<span class="badge pos" title="${esc(T("Aynı tutarda hesap hareketi var"))}">✓</span>` : `<span class="badge warn" title="${esc(T("Hesaplarda bu tutarda havuç girişi bulunamadı"))}">${T("yok")}</span>`) : ""), wd: 60 },
     { k: "_hs", l: "Hesaba işle", tip: "hesap", wd: 150, t: "Seçilen hesaba aynı tutarda hesap hareketi (Havuç) yazılır; satırı değiştirince ya da silince o da değişir",
       hs: r => hiDurum(r, tah, "havuc", x => (esl.has(x.id) ? tah.find(h => h.id === esl.get(x.id)) : null)), vars: () => hiSon("havuc") }];
@@ -21670,9 +21831,9 @@ function hvCiz() {
   pnTabloBagla(B, "his", isCols, { yenile: hvYenile, onay: true,
     kaydet: (id, p) => { const cur = H.is.find(x => x.id === id), m = { ...cur, ...p }; return S.api.havucIsKaydet({ id, ...p, ...("miktar" in p || "birim" in p ? { tutar: carp({ miktar: m.miktar, birim: m.birim, tutar: +m.tutar }).tutar } : {}) }); },
     sil: id => S.api.havucIsSil(id), ekle: r => S.api.havucIsKaydet({ sezon: +s, ...hvFirmaAlan(V, s, H.firma), tarih: null, ...carp({ ...r, tutar: r.tutar ?? 0 }) }) });
-  pnTabloBagla(B, "hod", odCols, { yenile: hvYenile, onay: true, ...hiSarmal({ mod: "havuc", tah: () => tah, bul: id => H.od.find(x => x.id === id), spec: hvSpec,
-    kaydet: (id, p) => S.api.havucOdemeKaydet({ id, ...p }), sil: id => S.api.havucOdemeSil(id),
-    ekle: r => S.api.havucOdemeKaydet({ sezon: +s, ...hvFirmaAlan(V, s, H.firma), tarih: r.tarih, tutar: r2k(r.tutar), aciklama: r.aciklama, hareket_id: null }) }) });
+  pnTabloBagla(B, "hod", odCols, { yenile: hvYenile, onay: true, ...hiSarmal({ mod: "havuc", tah: () => tah, bul: id => H.od.find(x => x.id === id), spec: (r, h) => (r.vade ? (toast(T("Vadeli / çekli ödeme hesaba işlenmez; vade günü nakit akışta \"tahsil edildi\" yapın."), true), null) : hvSpec(r, h)),
+    kaydet: (id, p) => S.api.havucOdemeKaydet({ id, ...p }).then(x => ("vade" in p || "tutar" in p || "aciklama" in p ? tarimVadeSirala() : null, x)), sil: id => S.api.havucOdemeSil(id).then(x => (tarimVadeSirala(), x)),
+    ekle: r => S.api.havucOdemeKaydet({ sezon: +s, ...hvFirmaAlan(V, s, H.firma), tarih: r.tarih, vade: r.vade || null, tutar: r2k(r.tutar), aciklama: r.aciklama, hareket_id: null }).then(x => (r.vade && tarimVadeSirala(), x)) }) });
   $("#hvGetir", B)?.addEventListener("click", async () => {
     try { for (const r of eksik) await S.api.havucOdemeKaydet({ sezon: +s, ...hvFirmaAlan(V, s, H.firma), tarih: r.tarih, tutar: r2k(+r.tutar), aciklama: r.aciklama2 || r.aciklama1 || null, hareket_id: r.id });
       toast(T("{n} giriş eklendi", { n: eksik.length })); await hvYenile(); } catch (er) { toast(errMsg(er), true); }
@@ -21725,7 +21886,7 @@ function hvTeslimDuzenle(x) {
 async function hvNakit(H) {
   const P = $("#hvNk .panel-b"), kat = katBul("Havuç"); if (!P) return;
   if (!kat) { P.innerHTML = `<div class="hint">${T("\"Havuç\" kategorisi yok.")}</div>`; return; }
-  let plan = []; try { plan = (await S.api.nakitListe({ kategori_id: kat.id, from: `${H.s}-04-01`, to: `${+H.s + 1}-07-31` }, 0, 2000)).filter(r => r.yon === "Giren" && !r.odendi && !r.hareket_id); } catch { return; }
+  let plan = []; try { plan = (await S.api.nakitListe({ kategori_id: kat.id, from: `${H.s}-04-01`, to: `${+H.s + 1}-07-31` }, 0, 2000)).filter(r => r.yon === "Giren" && !r.odendi && !r.hareket_id && !/^havuc:od:/.test(r.kaynak || "")); } catch { return; }   // çek / vadeli ödeme kalemleri kalan alacaktan zaten düşüldü
   // birden fazla firmada: açıklamasında firmanın adı geçen plan kalemleri (ilk firmaya adı geçmeyenler de sayılır)
   if (H.SA.cok) { const F = hvFirmalar(HV.V, H.s), ad = f => trFold(f.ad).split(" ")[0], gec = r => F.find(f => f.ad && ad(f) && trFold([r.aciklama1, r.aciklama2].join(" ")).includes(ad(f)));
     plan = plan.filter(r => { const f = gec(r); return f ? f.ad === H.firma : H.SA.ilk; }); }
@@ -21758,6 +21919,33 @@ function hvFirmaEkle(s, F) {
   };
   setTimeout(() => g("hfA").focus(), 30);
 }
+
+/* ---------- havuç ve hububat: çek / vadeli ödemeler nakit akışta ----------
+   Vadesi girilen ödeme (çek, senet, vadeli) vade gününe beklenen giriş olarak yazılır (kaynak "havuc:od:<id>" / "hububat:od:<id>").
+   Kategori ürünün gelir kategorisi: tahsil edildi yapılınca açılan hareket gelir ve Birikmiş net'e o gün bir kez girer.
+   Satır silinir ya da vadesi kaldırılırsa kalem de silinir; tahsil edilmiş ya da elle değiştirilmiş kaleme dokunulmaz. */
+async function tarimVadeEsitle() {
+  const [hv, hb, hbs] = await Promise.all([S.api.havucOdemeler().catch(() => []), S.api.hububatOdemeler().catch(() => []), S.api.hububatSatislar().catch(() => [])]);
+  const vd = L => (L || []).filter(r => r.vade && !r.hareket_id && Math.abs(+r.tutar) > 0.004);
+  const HV_ = vd(hv), HB_ = vd(hb); const hedef = new Map();
+  const islBul = async kat => { if (!kat) return null; try { return hiIsletme(await S.api.liste({ kategori_id: kat }, 0, 50)); } catch { return null; } };
+  const kHv = katBul("Havuç")?.id ?? null, iHv = HV_.length ? await islBul(kHv) : null;
+  for (const r of HV_) hedef.set(`havuc:od:${r.id}`, { kisi_id: null, hesap_id: null, isletme_id: iHv, kategori_id: kHv, yon: +r.tutar >= 0 ? "Giren" : "Çıkan", para_birimi: "TRY", kesin: true,
+    tarih: r.vade, tutar: r2k(Math.abs(+r.tutar)), aciklama1: r.firma || T("Havuç"), aciklama2: [T("Çek / vadeli ödeme"), r.aciklama].filter(Boolean).join(" · ") });
+  const isl = new Map();
+  for (const r of HB_) {
+    // kategori: alıcıya o sezon en çok giden ürün (Hesaba işle ile aynı kural)
+    const kg = {}; for (const x of hbs) if (+x.sezon === +r.sezon && trFold(x.alici || "") === trFold(r.alici || "") && +x.miktar > 0) kg[x.urun] = (kg[x.urun] || 0) + +x.miktar;
+    const u = Object.entries(kg).sort((a, b) => b[1] - a[1])[0]?.[0], kat = (u && katBul(u)?.id) || katBul("Buğday")?.id || null;
+    if (!isl.has(kat)) isl.set(kat, await islBul(kat));
+    hedef.set(`hububat:od:${r.id}`, { kisi_id: null, hesap_id: null, isletme_id: isl.get(kat), kategori_id: kat, yon: +r.tutar >= 0 ? "Giren" : "Çıkan", para_birimi: "TRY", kesin: true,
+      tarih: r.vade, tutar: r2k(Math.abs(+r.tutar)), aciklama1: r.alici || null, aciklama2: [T("Çek / vadeli ödeme"), r.aciklama].filter(Boolean).join(" · ") });
+  }
+  const bizim = k => /^(havuc|hububat):od:/.test(k || "");
+  const plan = [...((await S.api.nakitListe({ kaynak_on: "havuc:od:" }, 0, 5000).catch(() => [])) || []), ...((await S.api.nakitListe({ kaynak_on: "hububat:od:" }, 0, 5000).catch(() => [])) || [])].filter(r => bizim(r.kaynak));
+  return nkEsitle({ hedef, plan, bizim });
+}
+const tarimVadeSirala = () => nakitIsSirala(tarimVadeEsitle, true);
 
 /* =====================================================================
    TARIM · HUBUBAT — Excel'deki "Hububat"
@@ -21869,8 +22057,8 @@ function hbEsle(H, tah) {
   for (const o of H.od.slice().sort((a, b) => a.tarih.localeCompare(b.tarih) || a.id - b.id)) {
     if (esl.has(o.id)) continue;
     const w = hbKelime(o.alici), wf = w ? trFold(w) : null, ad = r => !!wf && metin(r).includes(wf), hedef = kr(o.tutar);
-    const havuz = tah.filter(r => !kul.has(r.id) && Math.abs(dayDiff(r.tarih, o.tarih)) <= 3 && (r.ur || ad(r)));
-    const tek = havuz.filter(r => Math.abs(Math.abs(kr(r.tutar)) - Math.abs(hedef)) <= 100).sort((a, b) => ad(b) - ad(a) || Math.abs(dayDiff(a.tarih, o.tarih)) - Math.abs(dayDiff(b.tarih, o.tarih)))[0];
+    const havuz = tah.filter(r => !kul.has(r.id) && Math.abs(dayDiff(r.tarih, o.vade || o.tarih)) <= 3 && (r.ur || ad(r)));
+    const tek = havuz.filter(r => Math.abs(Math.abs(kr(r.tutar)) - Math.abs(hedef)) <= 100).sort((a, b) => ad(b) - ad(a) || Math.abs(dayDiff(a.tarih, o.vade || o.tarih)) - Math.abs(dayDiff(b.tarih, o.vade || o.tarih)))[0];
     if (tek) { kul.add(tek.id); esl.set(o.id, { L: [tek], fark: kr(tek.tutar) * Math.sign(hedef) - hedef }); continue; }
     const gir = havuz.filter(r => r.yon === "Giren" && +r.tutar > 0), enIyi = P => {
       const c = P.slice(0, 16); let en = null;
@@ -22060,7 +22248,7 @@ function hbAliciCiz(B, H) {
   const hesapta = r => { if (!tah) return ""; const e = esl.get(r.id); if (!e) return `<span class="badge warn" title="${esc(T("Hesaplarda bu tutarda giriş bulunamadı"))}">${T("yok")}</span>`;
     const t = e.L.map(h => `${fdate(h.tarih)} ${nf2.format(+h.tutar)} ${h.aciklama1 || ""}`).join("\n");
     return Math.abs(e.fark) <= 100 ? `<span class="badge pos" title="${esc(t)}">✓${e.L.length > 1 ? ` ${e.L.length}` : ""}</span>` : `<span class="badge warn" title="${esc(T("Hesaplara geçen: {t}", { t }))}">≈ ${nf2.format(e.fark / 100)}</span>`; };
-  const odCols = [{ k: "tarih", l: "Tarih", tip: "tarih", zorunlu: true, wd: 92 }, { k: "alici", l: "Alıcı", list: "hbAliciL", wd: 96 }, { k: "tutar", l: "Tutar", tip: "sayi", zorunlu: true, wd: 100 },
+  const odCols = [{ k: "tarih", l: "Tarih", tip: "tarih", zorunlu: true, wd: 92 }, { k: "vade", l: "Vade", tip: "tarih", bos: true, wd: 92, t: "Çek, senet ya da vadeli ödemede paranın hesaba gireceği gün: tutar o gün nakit akışa beklenen giriş olarak yazılır. Tahsil edilince nakit akışta \"tahsil edildi\" yapın (gelir o gün yazılır). Vadeli satır hesaba işlenmez." }, { k: "alici", l: "Alıcı", list: "hbAliciL", wd: 96 }, { k: "tutar", l: "Tutar", tip: "sayi", zorunlu: true, wd: 100 },
     { k: "aciklama", l: "Açıklama", wd: 120 }, { k: "_h", l: "Hesapta", salt: hesapta, wd: 72, t: "Hesap hareketlerinde aynı tutar (ya da aynı günlerdeki girişlerin toplamı)" },
     { k: "_hs", l: "Hesaba işle", tip: "hesap", wd: 150, t: "Seçilen hesaba aynı tutarda hesap hareketi (alıcının ürünü kategorisinde) yazılır; satırı değiştirince ya da silince o da değişir",
       hs: r => hiDurum(r, tah, "hububat", x => { const e = esl.get(x.id); return e && Math.abs(e.fark) <= 100 ? e.L[0] : null; }), vars: () => hiSon("hububat") }];
@@ -22085,9 +22273,9 @@ function hbAliciCiz(B, H) {
         ${pnTablo("hod", odCols, H.od.slice().sort((a, b) => a.tarih.localeCompare(b.tarih) || a.id - b.id), { tarih: todayISO(), alici: sonA }, { dolu: true })}
         <div class="sumrow"><span>${T("Toplam")}: <b>${money(H.odenen)}</b></span>${tah ? `<span class="muted">${T("{n} kalem hesaplarda bulundu", { n: [...esl.values()].filter(e => Math.abs(e.fark) <= 100).length })}</span>` : `<span class="muted">${T("Hesap hareketleri yükleniyor…")}</span>`}</div></section>
     </div></div>`;
-  pnTabloBagla(B, "hod", odCols, { yenile: hbYenile, onay: true, ...hiSarmal({ mod: "hububat", tah: () => tah, bul: id => H.od.find(x => x.id === id), spec: hbSpec, anahtar: r => r.alici,
-    kaydet: (id, p) => S.api.hububatOdemeKaydet({ id, ...(p.tutar != null ? { ...p, tutar: r2k(p.tutar) } : p), ...("tarih" in p || "tutar" in p ? { hareket_id: null } : {}) }), sil: id => S.api.hububatOdemeSil(id),
-    ekle: r => S.api.hububatOdemeKaydet({ sezon: +s, tarih: r.tarih, alici: r.alici, tutar: r2k(r.tutar), aciklama: r.aciklama, hareket_id: null }) }) });
+  pnTabloBagla(B, "hod", odCols, { yenile: hbYenile, onay: true, ...hiSarmal({ mod: "hububat", tah: () => tah, bul: id => H.od.find(x => x.id === id), spec: (r, h) => (r.vade ? (toast(T("Vadeli / çekli ödeme hesaba işlenmez; vade günü nakit akışta \"tahsil edildi\" yapın."), true), null) : hbSpec(r, h)), anahtar: r => r.alici,
+    kaydet: (id, p) => S.api.hububatOdemeKaydet({ id, ...(p.tutar != null ? { ...p, tutar: r2k(p.tutar) } : p), ...("tarih" in p || "tutar" in p ? { hareket_id: null } : {}) }).then(x => ("vade" in p || "tutar" in p || "alici" in p || "aciklama" in p ? tarimVadeSirala() : null, x)), sil: id => S.api.hububatOdemeSil(id).then(x => (tarimVadeSirala(), x)),
+    ekle: r => S.api.hububatOdemeKaydet({ sezon: +s, tarih: r.tarih, vade: r.vade || null, alici: r.alici, tutar: r2k(r.tutar), aciklama: r.aciklama, hareket_id: null }).then(x => (r.vade && tarimVadeSirala(), x)) }) });
   $$("[data-hbek]", B).forEach(b => b.onclick = async () => {
     const r = eksik.find(x => x.id === +b.dataset.hbek); if (!r) return;
     try { await S.api.hububatOdemeKaydet({ sezon: +s, tarih: r.tarih, alici: tahmin(r), tutar: r2k(+r.tutar), aciklama: r.aciklama2 || r.aciklama1 || null, hareket_id: r.id }); toast(T("Eklendi")); await hbYenile(); }
@@ -22895,7 +23083,7 @@ async function dsNakitEsitle() {
     for (const k of K.L) hedef.set(`destek:${y}:kira:${k.a}`, { tarih: dsIleri(K.tarih, today), yon: "Çıkan", tutar: Math.round(k.tutar * 100) / 100, para_birimi: "TRY", kesin: false, kategori_id: katK?.id ?? null, isletme_id: isl,
       aciklama1: T("Tarımsal destek: ÇKS kira payı · {s}", { s: k.sahip }), aciklama2: T("{y} ÇKS · temel destek ödenince arazi sahibine", { y }) }); }
   const bizim = k => /^destek:/.test(k || "");
-  const plan = [...((await S.api.nakitListe({ q: T("Tarımsal destek"), from: alt }, 0, 3000).catch(() => [])) || []), ...((await S.api.nakitBekleyen().catch(() => [])) || [])].filter(r => bizim(r.kaynak));
+  const plan = [...((await S.api.nakitListe({ kaynak_on: "destek:", from: alt }, 0, 5000).catch(() => [])) || []), ...((await S.api.nakitBekleyen().catch(() => [])) || [])].filter(r => bizim(r.kaynak));
   return nkEsitle({ hedef, plan, bizim, alanlar: ["tarih", "yon", "kategori_id", "isletme_id", "aciklama1", "aciklama2", "kesin"] });
 }
 let DS_NK_ZAMAN = 0;
@@ -23354,14 +23542,14 @@ async function krNakitEsitle() {
   const kat = S.lk.kategoriler.find(k => /kira/i.test(k.ad) && /arazi|tarla|tarım/i.test(k.ad)) || null;   // genel "Kira" (dükkân kirası) kategorisine karışmasın
   const isl = S.lk.isletmeler.find(i => /şirket/i.test(i.ad))?.id ?? null, hedef = new Map();
   for (const k of L) {
-    const B = k.bedel, ilk = B.odT, son = k.bit || `${+ilk.slice(0, 4) + 2}${ilk.slice(4)}`, R = krTarlalar(V, k, +ilk.slice(0, 4));
+    const B = k.bedel, ilk = B.odT, son = k.bit || srAyGunu(`${+ilk.slice(0, 4) + 2}-${ilk.slice(5, 7)}`, +ilk.slice(8, 10)), R = krTarlalar(V, k, +ilk.slice(0, 4));
     const yaz = (t, tutar, yil) => { if (t < alt || !(tutar > 0)) return; hedef.set(`kira:${k.id}:${yil}`, { tarih: t, yon: "Çıkan", tutar: Math.round(tutar * 100) / 100, para_birimi: "TRY", kesin: true, kategori_id: kat?.id ?? null, isletme_id: isl,
       aciklama1: T("Arazi kirası: {s}", { s: krAd(K, k.sahip) }), aciklama2: [R.map(r => `${r.ada || "–"}/${r.parsel || "–"}`).join(", "), krBedelMetin(k, krAlan(R))].filter(Boolean).join(" · ") }); };
     if (B.odS === "tek") { const n = k.bas && k.bit ? Math.max(1, Math.round((new Date(k.bit) - new Date(k.bas)) / 315576e5)) : 1; yaz(ilk, krYil(V, k, +ilk.slice(0, 4)) * n, ilk.slice(0, 4)); }
-    else for (let y = +ilk.slice(0, 4); ; y++) { const t = `${y}${ilk.slice(4)}`; if (t > son) break; yaz(t, krYil(V, k, y), String(y)); }
+    else for (let y = +ilk.slice(0, 4); ; y++) { const t = srAyGunu(`${y}-${ilk.slice(5, 7)}`, +ilk.slice(8, 10)); if (t > son) break; yaz(t, krYil(V, k, y), String(y)); }   // srAyGunu: 29 Şubat → artık olmayan yılda 28 Şubat
   }
   const bizim = k => /^kira:/.test(k || "");
-  const plan = [...((await S.api.nakitListe({ q: T("Arazi kirası"), from: alt }, 0, 3000).catch(() => [])) || []), ...((await S.api.nakitBekleyen().catch(() => [])) || [])].filter(r => bizim(r.kaynak));
+  const plan = [...((await S.api.nakitListe({ kaynak_on: "kira:", from: alt }, 0, 5000).catch(() => [])) || []), ...((await S.api.nakitBekleyen().catch(() => [])) || [])].filter(r => bizim(r.kaynak));
   return nkEsitle({ hedef, plan, bizim, alanlar: ["tarih", "yon", "kategori_id", "isletme_id", "aciklama1", "aciklama2", "kesin"] });
 }
 let KR_NK_ZAMAN = 0;
@@ -23389,7 +23577,7 @@ const HY_KARSI = { Alış: "Borç", Satış: "Alacak", Borç: "Alış", Alacak: 
 const HY_HESAPLI = ["Havale/EFT", "Nakit"];
 // ödeme / tahsilat → hesap hareketi: kategori ve işletme boş (gelir / gider alış-satış kaydında), açıklama: cari · kimden / kime
 const hySpec = (x, hesap_id) => ((x.islem !== "Borç" && x.islem !== "Alacak") || !HY_HESAPLI.includes(x.birim) ? null
-  : { hesap_id, tarih: x.tarih, yon: x.islem === "Alacak" ? "Giren" : "Çıkan", tutar: +x.fiyat, kategori_id: null, isletme_id: null, aciklama1: x.cari, aciklama2: x.aciklama1 || null, kaynak: "hayvan", kid: x.id });
+  : { hesap_id, tarih: x.tarih, yon: x.islem === "Alacak" ? "Giren" : "Çıkan", tutar: +x.fiyat, kategori_id: null, isletme_id: HYM?.isletme_id ?? null, aciklama1: x.cari, aciklama2: x.aciklama1 || null, kaynak: "hayvan", kid: x.id });   // kategorisiz; işletme hayvancılık işletmesi (Birikmiş net'te para o işletmeye girer)
 const hyR2 = x => Math.sign(x) * Math.round(Math.abs(x) * 100 + 1e-7) / 100;
 const hyGun = iso => Date.UTC(+iso.slice(0, 4), +iso.slice(5, 7) - 1, +iso.slice(8, 10)) / 864e5;
 const hyIso = g => new Date(Math.floor(g) * 864e5).toISOString().slice(0, 10);
@@ -23416,11 +23604,13 @@ function hyHesap(V) {
   // ödenen: aynı cari + parti + no ile girilen ödeme / tahsilat
   const od = new Map(), anah = (x, i) => `${x.cari || ""}|${x.parti || ""}|${x.no ?? ""}|${i}`;
   for (const x of H) if (!x.ticari) od.set(anah(x, x.islem), (od.get(anah(x, x.islem)) || 0) + x.net);
+  // fazla tahsilatın iadesi: satışa bağlanan ödeme (Borç) o satışın tahsilatından düşer (aynı cari / parti / no ile alış yoksa)
+  const alisK = new Set(H.filter(z => z.islem === "Alış").map(z => anah(z, "")));
   // partilere göre kümülatif adet (sıra: tarih, giriş)
   const kum = new Map();
   for (const x of H) {
     const k = kum.get(x.parti || "") || { a: 0, s: 0 }; if (x.islem === "Alış") k.a += x.a; if (x.islem === "Satış") k.s += x.a; kum.set(x.parti || "", k); x.kumA = k.a; x.kumS = k.s;
-    if (x.ticari) { x.odenen = hyR2(od.get(anah(x, HY_KARSI[x.islem])) || 0); x.kalan = hyR2(x.net - x.odenen); x.birimF = x.a ? x.net / x.a : 0;
+    if (x.ticari) { x.iade = x.islem === "Satış" && !alisK.has(anah(x, "")) ? hyR2(od.get(anah(x, "Borç")) || 0) : 0; x.odenen = hyR2((od.get(anah(x, HY_KARSI[x.islem])) || 0) - x.iade); x.kalan = hyR2(x.net - x.odenen); x.birimF = x.a ? x.net / x.a : 0;
       // peşinat (işlem günü beklenen) ve vadeli kısım: ödemeler önce peşinattan düşer. Vade yoksa tamamı peşin sayılır.
       const pes = x.vade ? Math.min(+x.pesinat || 0, x.net) : x.net; x.pKalan = hyR2(Math.max(0, Math.min(pes - x.odenen, x.kalan))); x.vKalan = hyR2(Math.max(0, x.kalan - x.pKalan)); }
     x.yonlu = x.islem === "Alış" || x.islem === "Alacak" ? x.net : -x.net;
@@ -23468,14 +23658,18 @@ function hyHesap(V) {
   }).sort((a, b) => (a.O || "").localeCompare(b.O || "") || a.parti.localeCompare(b.parti, "tr", { numeric: true }));
   // cariler
   const CM = new Map(), ca = c => { if (!CM.has(c)) CM.set(c, { cari: c, alA: 0, alN: 0, bor: 0, saA: 0, saN: 0, ala: 0, son: null, n: 0 }); return CM.get(c); };
-  for (const x of H) { const c = ca(x.cari || ""); c.n++; c.son = x.tarih; if (x.islem === "Alış") { c.alA += x.a; c.alN += x.net; } else if (x.islem === "Satış") { c.saA += x.a; c.saN += x.net; } else if (x.islem === "Borç") c.bor += x.net; else c.ala += x.net; }
+  // satışa bağlanan ödeme (fazla tahsilat iadesi) tahsil edilenden düşer, ödenene eklenmez
+  const satK = new Set(H.filter(z => z.islem === "Satış").map(z => anah(z, ""))), iadeMi = x => x.islem === "Borç" && satK.has(anah(x, "")) && !alisK.has(anah(x, ""));
+  for (const x of H) { const c = ca(x.cari || ""); c.n++; c.son = x.tarih; if (x.islem === "Alış") { c.alA += x.a; c.alN += x.net; } else if (x.islem === "Satış") { c.saA += x.a; c.saN += x.net; } else if (iadeMi(x)) c.ala -= x.net; else if (x.islem === "Borç") c.bor += x.net; else c.ala += x.net; }
   const CL = [...CM.values()].map(c => ({ ...c, borcumuz: c.alN - c.bor, alacagimiz: c.saN - c.ala, bakiye: c.alN - c.bor - (c.saN - c.ala) })).sort((a, b) => Math.abs(b.bakiye) - Math.abs(a.bakiye) || a.cari.localeCompare(b.cari, "tr"));
   // işlemi bulunmayan ödemeler (cari + parti + no tutmuyor)
   const ticAnah = new Set(H.filter(x => x.ticari).map(x => anah(x, x.islem)));
-  const yetim = H.filter(x => !x.ticari && !ticAnah.has(anah(x, HY_KARSI[x.islem])));
+  const yetim = H.filter(x => !x.ticari && !ticAnah.has(anah(x, HY_KARSI[x.islem])) && !iadeMi(x));
   const al = H.filter(x => x.islem === "Alış"), sa = H.filter(x => x.islem === "Satış");
   const stok = { adet: sum(al, x => x.a) - sum(sa, x => x.a), maliyet: sum(al, x => x.net) - sum(sa, x => x.fifo) };
-  stok.masraf = sum(al, x => x.net) + sum(M, x => x.tu) - sum(sa, x => x.maliyet) - stok.maliyet; stok.birim = stok.adet ? (stok.maliyet + stok.masraf) / stok.adet : 0;
+  // girdi stoğundan partilere yapılan kullanım (yem) de masraftır: satılanlara düşen payı x.maliyet içinde, kalanı stokta
+  const stokKul = [...P.values()].reduce((t, p) => t + (p.stok?.tutar || 0), 0);
+  stok.masraf = sum(al, x => x.net) + sum(M, x => x.tu) + stokKul - sum(sa, x => x.maliyet) - stok.maliyet; stok.birim = stok.adet ? (stok.maliyet + stok.masraf) / stok.adet : 0;
   return { H, M, PL, CL, yetim, stok, kar: sum(sa, x => x.kar), karU: sum(sa, x => x.karU), kurYok: H.filter(x => !x.kur).length + M.filter(m => !m.kur).length };
 }
 
@@ -23567,7 +23761,7 @@ function hyPartiCiz(B, H) {
         <th class="r" title="${esc(T("Günlük canlı ağırlık artışı"))}">${T("Günlük artış (g)")}</th><th class="r" title="${esc(T("Satılanların masraflı maliyeti / satılan canlı kg"))}">${T("Maliyet / kg")}</th><th class="r">${T("Satış / kg")}</th><th class="r" title="${esc(T("Satış / kg − maliyet / kg"))}">${T("Kâr / kg")}</th>
         <th class="r" title="${esc(T("Girdi stoğundan bu partiye yapılan kullanım"))}">${T("Stok kullanımı")}</th><th class="r">${T("Yem (kg)")}</th><th class="r" title="${esc(T("Kullanılan yem kg / kazanılan canlı kg (satılanlar için)"))}">${T("Yem dönüşümü")}</th></tr></thead>
       <tbody>${PP.map(p => { const art = p.kgG && p.kgC ? p.kgC - p.kgG : null, gun = p.C ? p.N : null, gca = art != null && gun > 0 ? (art / gun) * 1000 : null, mk = p.satKg ? p.malSat / p.satKg : null, sk = p.satKg ? p.netSat / p.satKg : null;
-        const kaz = art != null ? art * (p.satKgA || p.C) : null, fcr = p.yemKg && kaz > 0 ? p.yemKg / kaz : null;
+        const kaz = art != null ? art * (p.satKgA || p.C) : null, fcr = p.yemKg && kaz > 0 && p.B ? (p.yemKg * Math.min(1, p.C / p.B)) / kaz : null;   // kısmen satılmış partide yemin satılanlara düşen payı
         const sek = [p.satKgA - p.krkA ? T("canlı {n}", { n: nf0.format(p.satKgA - p.krkA) }) : "", p.krkA ? T("karkas {n} ({k} kg/baş)", { n: nf0.format(p.krkA), k: pnN(p.krkKg / p.krkA, 1) }) : "", p.satAdetsiz ? T("adetle {n}", { n: nf0.format(p.satAdetsiz) }) : ""].filter(Boolean).join(" · ");
         return `<tr data-hyp="${esc(p.parti)}" class="click"><td><b>${esc(p.parti)}</b></td><td class="r num" ${p.alAdetsiz ? `title="${esc(T("{n} baş tartımsız (adetle) alındı; ortalamaya girmedi", { n: nf0.format(p.alAdetsiz) }))}"` : ""}>${kg(p.kgG)}${p.alAdetsiz ? "*" : ""}</td><td class="r num">${kg(p.kgC)}</td><td class="muted" style="font-size:12px">${esc(sek) || `<span class="faint">·</span>`}</td><td class="r num">${art != null ? pnN(art, 1) : `<span class="faint">·</span>`}</td><td class="r num">${gun ? pnN(gun, 0) : `<span class="faint">·</span>`}</td>
           <td class="r num">${gca != null ? `<b>${nf0.format(gca)}</b>` : `<span class="faint">·</span>`}</td><td class="r num">${mk ? nf2.format(mk) : `<span class="faint">·</span>`}</td><td class="r num">${sk ? nf2.format(sk) : `<span class="faint">·</span>`}</td><td class="r num ${sk && mk && sk < mk ? "neg" : ""}">${sk && mk ? nf2.format(sk - mk) : `<span class="faint">·</span>`}</td>
@@ -23654,6 +23848,7 @@ function hyFormOku(root, tur, H) {
     if (sel === "oto") x._dagit = true;
     x.fiyat = tu; x.parti = t ? t.parti : null; x.no = t ? t.no : null; x.adet = null; x.tartim = null; x.fire = null; x.iskonto = null; x.vade = ["Çek", "Senet"].includes(x.birim) ? g("hfV").value || null : null;
     if (!t && !x._dagit) return { hata: T("Ödemenin bağlanacağı işlemi seçin."), el: g("hfX") };
+    if (HY_HESAPLI.includes(x.birim) && hs && !hs.disabled && !x._hs) return { hata: T("Nakit ve Havale/EFT ödemelerinde hesabı seçin (Hesaba işle)."), el: hs };   // hesapsız nakit Birikmiş net'te hiç görünmezdi
     const cr = g("hfCr"); if (cr) { const v = x.birim === "Çek" ? +cr.value || null : null; if (v || cr.dataset.vardi) x.ciro_id = v; }   // ciro edilen alınan çek
   }
   return { x };
@@ -23699,19 +23894,20 @@ function hyFormBagla(root, tur, H, secili) {
 
   if (g("hfC")) oneriAlani(g("hfC"), { liste: () => hyCariOneri(H), min: 3 });
   if (g("hfP")) oneriAlani(g("hfP"), { liste: () => hyPartiOneri(H), min: 1 });
-  const islemDoldur = () => { const sel = g("hfX"); if (!sel) return; const c = g("hfC").value.trim(), L = H.H.filter(z => z.islem === HY_KARSI[tur] && hyAyni(z.cari, c)).sort((a, b) => (Math.abs(b.kalan) > 0.5) - (Math.abs(a.kalan) > 0.5) || b.tarih.localeCompare(a.tarih) || b.id - a.id);
+  const islemDoldur = () => { const sel = g("hfX"); if (!sel) return; const c = g("hfC").value.trim(), L = H.H.filter(z => (z.islem === HY_KARSI[tur] || (tur === "Borç" && z.islem === "Satış" && (z.kalan < -0.5 || z.id === secili))) && hyAyni(z.cari, c)).sort((a, b) => (Math.abs(b.kalan) > 0.5) - (Math.abs(a.kalan) > 0.5) || b.tarih.localeCompare(a.tarih) || b.id - a.id);
     const s0 = secili ?? (L.find(z => Math.abs(z.kalan) > 0.5) || L[0])?.id;
     const acik = L.filter(z => z.kalan > 0.5);
     sel.innerHTML = (acik.length > 1 && secili == null ? `<option value="oto" selected>${esc(T("Otomatik: önce peşinatlar, sonra vadesi yakın olanlar ({n} açık işlem · {t})", { n: acik.length, t: nf2.format(acik.reduce((s, z) => s + z.kalan, 0)) }))}</option>` : "")
-      + (L.length ? L.map(z => `<option value="${z.id}" ${z.id === s0 && !(acik.length > 1 && secili == null) ? "selected" : ""}>${esc(hyIslemEtiket(z))}</option>`).join("") : `<option value="">${T("Bu carinin {t} yok", { t: T(tur === "Borç" ? "alışı" : "satışı") })}</option>`);
+      + (L.length ? L.map(z => `<option value="${z.id}" ${z.id === s0 && !(acik.length > 1 && secili == null) ? "selected" : ""}>${esc((z.islem === "Satış" && tur === "Borç" ? T("İade (fazla tahsilat) · ") : "") + hyIslemEtiket(z))}</option>`).join("") : `<option value="">${T("Bu carinin {t} yok", { t: T(tur === "Borç" ? "alışı" : "satışı") })}</option>`);
     const z = L.find(z => z.id === +sel.value); if (z && !g("hfFy").value && z.kalan > 0) g("hfFy").placeholder = nf2.format(z.kalan); };
   g("hfC")?.addEventListener("change", islemDoldur); g("hfC")?.addEventListener("input", () => { if (H.H.some(z => hyAyni(z.cari, g("hfC").value))) islemDoldur(); }); islemDoldur();
-  g("hfX")?.addEventListener("change", () => { const z = H.H.find(z => z.id === +g("hfX").value); g("hfFy").placeholder = z && z.kalan > 0 ? nf2.format(z.kalan) : ""; });
+  g("hfX")?.addEventListener("change", () => { const z = H.H.find(z => z.id === +g("hfX").value); g("hfFy").placeholder = z && Math.abs(z.kalan) > 0.005 ? nf2.format(Math.abs(z.kalan)) : ""; });
   g("hfH")?.addEventListener("change", () => { g("hfH").dataset.elle = "1"; });
   g("hfCr")?.addEventListener("change", () => { const c = hyCekGrup(H).find(c => c.id === +g("hfCr").value); if (!c) return;
     g("hfFy").value = fmtInput(c.net); g("hfV").value = c.x.vade; if (g("hfA1")) g("hfA1").value = c.x.aciklama1 || ""; if (g("hfA2") && !g("hfA2").value) g("hfA2").value = T("{c} çeki ciro", { c: c.x.cari || "" }); });
   g("hfB")?.addEventListener("change", () => { const b = g("hfB").value; $(".hy-kg", root)?.toggleAttribute("hidden", !hyKgli(b)); if (g("hfKg")) g("hfKg").placeholder = b === "Adet" ? T("isteğe bağlı") : "";
-    const fe = g("hfF"); if (fe && HY_FIRE[b] != null) { const v0 = pnSayi(fe.value); if (v0 == null || Object.values(HY_FIRE).some(z => Math.abs(z * 100 - v0) < 1e-9)) fe.value = pnN(HY_FIRE[b] * 100, 2); }   // canlıda %5, kesimde %2 (elle yazılmadıysa) $(".hy-vd", root)?.toggleAttribute("hidden", !["Çek", "Senet"].includes(b)); $(".hy-cr", root)?.toggleAttribute("hidden", b !== "Çek");
+    const fe = g("hfF"); if (fe && HY_FIRE[b] != null) { const v0 = pnSayi(fe.value); if (v0 == null || Object.values(HY_FIRE).some(z => Math.abs(z * 100 - v0) < 1e-9)) fe.value = pnN(HY_FIRE[b] * 100, 2); }
+    $(".hy-vd", root)?.toggleAttribute("hidden", !["Çek", "Senet"].includes(b)); $(".hy-cr", root)?.toggleAttribute("hidden", b !== "Çek");   // fire: canlıda %5, kesimde %2 (elle yazılmadıysa)
     $(".hy-hs", root)?.toggleAttribute("hidden", !HY_HESAPLI.includes(b));
     if (g("hfH") && !g("hfH").dataset.elle && !g("hfH").dataset.kayit) g("hfH").value = hiSon("hayvan", b) ?? ""; g("hfFy").placeholder = hyKgli(b) ? T("TL/kg") : b === "Adet" ? T("TL/adet") : g("hfFy").placeholder;
     const fb = $(".hy-fyb", root); if (fb && (hyKgli(b) || b === "Adet")) fb.textContent = b === "Adet" ? T("TL/adet") : T("TL/kg"); });
@@ -23805,13 +24001,15 @@ function hyHareketCiz(B, H) {
 function hyListeCiz(LB, H) {
   const f = HY.f, U = HY.para === "USD", PL = H.PL.map(p => p.parti);
   // "Kalanı olanlar": ödenmemiş / tahsil edilmemiş tutarı kalan alış ve satışlar
-  const kalanli = HY.kalan === "1", uyar = x => (!f.islem || x.islem === f.islem) && (!kalanli || (x.ticari && Math.abs(+x.kalan || 0) > 0.5));
+  const kalanli = HY.kalan === "1", uyar = x => (!f.islem || x.islem === f.islem) && (!f.bas || x.tarih >= f.bas) && (!f.bit || x.tarih <= f.bit) && (!kalanli || (x.ticari && Math.abs(+x.kalan || 0) > 0.5));
   let L = H.H.filter(x => (f.parti === "*" || !f.parti || x.parti === f.parti) && (!f.cari || x.cari === f.cari) && uyar(x)), not = "";
   if (!L.length && f.cari && f.parti && f.parti !== "*") {
     const L2 = H.H.filter(x => x.cari === f.cari && uyar(x));
     if (L2.length) { L = L2; not = T("{c} carisinin {p} partisinde kaydı yok; tüm partilerdeki kayıtları gösteriliyor.", { c: f.cari, p: f.parti }); }
   }
   L.sort((a, b) => b.tarih.localeCompare(a.tarih) || b.id - a.id);
+  // "Kalanı olanlar" seçiliyken gizlenen kayıt sayısı (seçim kalıcı olduğu için gözden kaçmasın)
+  const gizli = kalanli ? H.H.filter(x => (f.parti === "*" || !f.parti || x.parti === f.parti) && (!f.cari || x.cari === f.cari) && (!f.islem || x.islem === f.islem) && (!f.bas || x.tarih >= f.bas) && (!f.bit || x.tarih <= f.bit)).length - L.length : 0;
   const sec = (id, l, L_, v) => `<select class="i" id="${id}" style="width:auto" aria-label="${esc(T(l))}"><option value="">${T(l)}</option>${L_.map(([x, e]) => `<option value="${esc(x)}" ${v === x ? "selected" : ""}>${esc(e)}</option>`).join("")}</select>`;
   const cariler = [...new Set(H.H.filter(x => f.parti === "*" || !f.parti || x.parti === f.parti).map(x => x.cari).filter(Boolean).concat(f.cari ? [f.cari] : []))].sort((a, b) => a.localeCompare(b, "tr"));
   const sm = (k, i) => L.filter(x => x.islem === i).reduce((t, x) => t + (x[k] || 0), 0), sat = L.filter(x => x.islem === "Satış");
@@ -23822,8 +24020,10 @@ function hyListeCiz(LB, H) {
   LB.innerHTML = `<div class="panel-h"><h2>${T("Alış, satış ve ödemeler")}</h2>
         <div style="display:flex;gap:8px;flex-wrap:wrap"><select class="i" id="hyFp" style="width:auto" aria-label="${esc(T("Parti"))}">${[["*", T("Tüm partiler")], ...PL.slice().reverse().map(p => [p, p])].map(([x, e]) => `<option value="${esc(x)}" ${(f.parti || "*") === x ? "selected" : ""}>${esc(e)}</option>`).join("")}</select>
           ${sec("hyFc", "Tüm cariler", cariler.map(c => [c, c]), f.cari)}${sec("hyFi", "Tüm işlemler", HY_TUR.map(([k, t]) => [k, T(t)]), f.islem)}
+          <input class="i" type="date" id="hyFb" style="width:150px" value="${f.bas || ""}" aria-label="${esc(T("Başlangıç"))}" title="${esc(T("Başlangıç"))}"><input class="i" type="date" id="hyFs" style="width:150px" value="${f.bit || ""}" aria-label="${esc(T("Bitiş"))}" title="${esc(T("Bitiş"))}">
           <div class="seg" role="group" aria-label="${esc(T("Kalan"))}">${[["", "Tümü"], ["1", "Kalanı olanlar"]].map(([k, t]) => `<button type="button" data-hykal="${k}" aria-pressed="${(HY.kalan || "") === k}">${T(t)}</button>`).join("")}</div></div></div>
       ${not ? `<div class="note" style="margin:10px 16px 0"><span>${esc(not)}</span></div>` : ""}
+      ${gizli > 0 || f.cari || (f.parti && f.parti !== "*") || f.islem || f.bas || f.bit ? `<div class="hint" style="margin:8px 16px 0;display:flex;gap:10px;align-items:center;flex-wrap:wrap">${gizli > 0 ? `<span>${esc(T("Yalnız kalanı olanlar gösteriliyor; {n} kayıt gizli.", { n: gizli }))}</span>` : ""}<button class="btn sm ghost" id="hyFTem">${T("Filtreleri temizle")}</button></div>` : ""}
       <div class="sec-bar sec-tek" id="hySec" hidden></div>
       ${L.length ? `<div class="tw"><table class="t hy-t hy-h"><thead><tr>${secTh()}<th>${T("Tarih")}</th><th>${T("İşlem")}</th><th>${T("Cari")}</th><th>${T("Parti / no")}</th><th class="r">${T("Adet")}</th><th class="r">${T("Brüt kg")}</th><th class="r">${T("Net kg")}</th><th class="r">${T("Fiyat")}</th>
           <th class="r">${T("Net tutar")}</th><th class="r">${T("Ödenen")}</th><th class="r">${T("Kalan")}</th><th class="r">${T("Adet başı")}</th><th class="r" title="${esc(T("FIFO alış maliyeti + masraf payı"))}">${T("Maliyet")}</th><th class="r">${T("Kâr / zarar")}</th><th class="r" title="${esc(T("Elde tutma (gün)"))}">${T("Gün")}</th><th>${T("Açıklama")}</th></tr></thead>
@@ -23843,6 +24043,9 @@ function hyListeCiz(LB, H) {
   $("#hyFp", LB).onchange = e => { f.parti = e.target.value; delete f.cari; HY.hepsi = false; hyListeCiz(LB, H); };
   $("#hyFc", LB).onchange = e => { f.cari = e.target.value || null; hyListeCiz(LB, H); };
   $("#hyFi", LB).onchange = e => { f.islem = e.target.value || null; hyListeCiz(LB, H); };
+  $("#hyFb", LB).onchange = e => { f.bas = e.target.value || null; HY.hepsi = false; hyListeCiz(LB, H); };
+  $("#hyFs", LB).onchange = e => { f.bit = e.target.value || null; HY.hepsi = false; hyListeCiz(LB, H); };
+  $("#hyFTem", LB)?.addEventListener("click", () => { delete f.cari; f.parti = "*"; f.islem = null; f.bas = f.bit = null; HY.kalan = ""; store.set("hyKalan", ""); HY.hepsi = false; hyListeCiz(LB, H); });
   $$("[data-hykal]", LB).forEach(b => b.onclick = () => { HY.kalan = b.dataset.hykal; store.set("hyKalan", HY.kalan); HY.hepsi = false; hyListeCiz(LB, H); });
   $("#hyHepsi", LB)?.addEventListener("click", () => { HY.hepsi = true; hyListeCiz(LB, H); });
   const bul = k => H.H.find(x => String(x.id) === k);
@@ -23872,7 +24075,7 @@ function hyDuzenle(H, x) {
     <div class="hint" id="hfOn" style="margin-top:8px"></div>${bilgi}`,
     `<button class="btn danger left" id="hfSil">${T("Sil")}</button><button class="btn" id="hfVz">${T("Vazgeç")}</button><button class="btn primary" id="hfK2">${T("Kaydet")}</button>`);
   const g = id => $("#" + id, d);
-  hyFormBagla(d, tur, H, x.ticari ? null : H.H.find(z => z.ticari && z.islem === HY_KARSI[tur] && z.cari === x.cari && z.parti === x.parti && z.no === x.no)?.id);
+  hyFormBagla(d, tur, H, x.ticari ? null : (H.H.find(z => z.ticari && z.islem === HY_KARSI[tur] && z.cari === x.cari && z.parti === x.parti && z.no === x.no) || (tur === "Borç" ? H.H.find(z => z.islem === "Satış" && z.cari === x.cari && z.parti === x.parti && z.no === x.no) : null))?.id);
   let bag = null, bagP = Promise.resolve();
   if (g("hfH")) {
     g("hfH").dataset.kayit = "1"; g("hfH").disabled = true;
@@ -23892,14 +24095,18 @@ function hyDuzenle(H, x) {
   const on = () => { const { x: y } = hyFormOku(d, tur, H); g("hfOn").innerHTML = hyOnizle(y, H); }; d.addEventListener("input", on); on();
   g("hfVz").onclick = closeDrawer;
   g("hfK2").onclick = async () => {
+    await bagP.catch(() => {});   // bağlı hareket gelmeden kaydedilirse eşitleme atlanmasın (hesap seçimi denetimi de hazır listeyle)
     const { x: y, hata, el } = hyFormOku(d, tur, H); if (hata) { el?.focus(); return toast(hata, true); }
-    await bagP.catch(() => {});   // bağlı hareket gelmeden kaydedilirse eşitleme atlanmasın
     const kn_ = await hyYeniKontrol(y, H, x); if (kn_.hata || kn_.iptal) { g(kn_.el)?.focus(); return kn_.hata && toast(kn_.hata, true); }
     const k = pnSayi(g("hfK").value); if (Number.isNaN(k)) return toast(T("Sayıyı kontrol edin."), true);
     try {
       const { _hs: hs0, ...row } = y, hazir = g("hfH")?.dataset.hazir === "1", _hs = hazir ? hs0 : HY_HESAPLI.includes(row.birim) ? bag?.hesap_id ?? null : null;
       row.usd_kur = k ?? (row.tarih === x.tarih && x.kur ? x.kur : await hyKur(row.tarih));
       try { await S.api.hayvanHareketKaydet({ id: x.id, ...row }); } catch (er) { if (/ciro_id/i.test(errMsg(er))) throw new Error(T("Çek cirosu için Supabase › SQL Editor'de güncel kurulum.sql dosyasını bir kez çalıştırın.")); throw er; }
+      // birden çok partiye bölünmüş çek / senet: bir parçanın ortak bilgisi (cari, tarih, vade, açıklama, tür) değişince diğer parçalar da güncellenir; grup ve ciro bağı bozulmaz
+      if (!x.ticari && ["Çek", "Senet"].includes(x.birim)) { const kk = z => [z.islem, z.cari || "", z.birim, z.tarih, z.vade || "", (z.aciklama1 || "").trim().toLocaleLowerCase("tr")].join("|");
+        const kardes = H.H.filter(z => z.id !== x.id && !z.ticari && kk(z) === kk(x)), yeni = { cari: row.cari, tarih: row.tarih, vade: row.vade, aciklama1: row.aciklama1, birim: row.birim };
+        if (kardes.length && kk({ ...x, ...yeni }) !== kk(x)) { for (const z of kardes) await S.api.hayvanHareketKaydet({ id: z.id, ...yeni }); toast(T("Aynı çekin diğer {n} parçası da güncellendi", { n: kardes.length })); } }
       if (!x.ticari && (bag || (hazir && _hs))) { const hid = await hiEsitle(bag ? x.hareket_id : null, _hs ? hySpec({ ...row, id: x.id }, _hs) : null); await S.api.hayvanHareketKaydet({ id: x.id, hareket_id: hid }); if (_hs) hiSonYaz("hayvan", row.birim, _hs); }
       // alış / satış: bağlı gelir-gider kaydı güncellenir (önceden elle girilmiş, bağsız kayıtlara dokunulmaz)
       if (x.ticari && x.hareket_id) { await hymAyar(); const hid = await hymEsitle(x.hareket_id, hymSpec(row, x.id)); if (hid !== x.hareket_id) await S.api.hayvanHareketKaydet({ id: x.id, hareket_id: hid }); }
@@ -24100,6 +24307,22 @@ async function hymEsitle(hid, s) {
   if (hid) { const h = await S.api.hareket(hid); if (h) { await S.api.guncelle(hid, s); return hid; } }
   const r = await S.api.ekle([s]); return r?.[0]?.id ?? null;
 }
+// bir kerelik: hayvancılık ödeme / tahsilatlarının (Nakit, Havale/EFT) hesap hareketlerinde işletme boşsa hayvancılık işletmesi yazılır.
+// Hesaba işlenmiş olanlar bağlarından; elle girilmiş olanlar aynı tutar, ±3 gün, açıklamada cari adı ve kategorisiz olmasından bulunur.
+async function hyIsletmeDoldur(H, M) {
+  const isl = M.isletme_id; if (!isl || store.get("hyIslDolu", "") === String(isl)) return;
+  const od = H.H.filter(x => !x.ticari && HY_HESAPLI.includes(x.birim) && +x.fiyat > 0), yaz = new Set(), kul = new Set();
+  const ids = od.map(x => x.hareket_id).filter(Boolean);
+  for (const h of ids.length ? await S.api.hareketlerId(ids) : []) { kul.add(+h.id); if (h.isletme_id == null && h.hesap_id) yaz.add(+h.id); }
+  for (const x of od.filter(x => !x.hareket_id)) {
+    const L = (await S.api.liste({ q: x.cari, from: addDays(x.tarih, -3), to: addDays(x.tarih, 3) }, 0, 100)) || [];
+    const h = L.find(r => r.hesap_id && !r.ek?.kaynak && !r.kategori_id && r.isletme_id == null && !kul.has(+r.id) && Math.abs(+r.tutar - +x.fiyat) < 1 && r.yon === (x.islem === "Alacak" ? "Giren" : "Çıkan"));
+    if (h) { kul.add(+h.id); yaz.add(+h.id); }
+  }
+  for (const id of yaz) await S.api.guncelle(id, { isletme_id: isl });
+  store.set("hyIslDolu", String(isl));
+  if (yaz.size) toast(T("{n} hayvancılık ödeme / tahsilat hareketine işletme yazıldı", { n: yaz.size }));
+}
 // nakit akış: vadeli alış / satışların kalanı vade tarihinde
 async function hayvanNakitEsitle() {
   let V; try { V = await hayvanVeri(); } catch (e) { if (kasaTabloYok(e)) return 0; throw e; }
@@ -24114,7 +24337,7 @@ async function hayvanNakitEsitle() {
   const cg = new Map();
   for (const x of H.H) {
     if (x.ciro_id) continue;
-    if (x.ticari || !["Çek", "Senet"].includes(x.birim) || !x.vade || x.vade < todayISO() || +x.id <= +(M.bas_id || 0) || !(x.net > 0.5)) continue;
+    if (x.ticari || !["Çek", "Senet"].includes(x.birim) || !x.vade || +x.id <= +(M.bas_id || 0) || !(x.net > 0.5)) continue;   // vadesi geçmiş olanlar aşağıda: yalnız kalemi açık duruyorsa kalır
     const k = [x.islem, x.cari || "", x.birim, x.tarih, x.vade, (x.aciklama1 || "").trim().toLocaleLowerCase("tr")].join("|");
     (cg.get(k) || cg.set(k, []).get(k)).push(x);
   }
@@ -24137,6 +24360,8 @@ async function hayvanNakitEsitle() {
   const katlar = [...new Set([M.kat_alis, M.kat_satis, ...[...hedef.values()].map(h => h.kategori_id)].filter(Boolean))];
   // ödenmiş kalemler kalem kalem; ödenmemişler (kalemi sonradan değişmiş olsa da) bekleyenlerden
   const plan = [...(await Promise.all(katlar.map(k => S.api.nakitListe({ kategori_id: k, from: addDays(todayISO(), -730) }, 0, 5000)))).flat(), ...((await S.api.nakitBekleyen().catch(() => [])) || [])].filter(bizim);
+  // vadesi geçmiş çek / senet: kalemi hâlâ açıksa (ödendi işaretlenmemiş) gecikmiş olarak durur, kendiliğinden silinmez; kalemi olmayan için yeni kalem açılmaz
+  const bugun = todayISO(); for (const [k, h] of [...hedef]) if (/^hayvan:\d+:c$/.test(k) && h.tarih < bugun && !plan.some(r => r.kaynak === k && !r.odendi)) hedef.delete(k);
   return nkEsitle({ hedef, plan, bizim: k => /^(hayvan|hymasraf):/.test(k), alanlar: ["tarih", "aciklama1", "aciklama2", "isletme_id", "kategori_id", "yon"] });   // ortak kurallar: 18c-esitle.js
 }
 const hayvanNakitSirala = () => nakitIsSirala(hayvanNakitEsitle, true);
@@ -27052,7 +27277,7 @@ function npBoyutla(w, id) {
    Hareketin ek alanında kaynağı yazılıdır ({ kaynak, kid }): Hareketler'de rozetle görünür, açınca kaynağa yönlendirir.
    Daha önce iki yere elle girilmiş kayıtlara dokunulmaz: yalnız yeni girilen ya da hesabı elle seçilen satırlar işlenir.
    ===================================================================== */
-const HI_KAYNAK = { hayvan: ["Hayvancılık", "hayvancilik"], hymasraf: ["Hayvancılık", "hayvancilik"], havuc: ["Havuç", "tarim", "havuc"], hububat: ["Hububat", "tarim", "hububat"], hizmet: ["Hasat hizmeti", "tarim", "cks"], pancar: ["Şeker pancarı", "tarim", "pancar"] };
+const HI_KAYNAK = { hayvan: ["Hayvancılık", "hayvancilik"], hymasraf: ["Hayvancılık", "hayvancilik"], havuc: ["Havuç", "tarim", "havuc"], hububat: ["Hububat", "tarim", "hububat"], hizmet: ["Hasat hizmeti", "tarim", "cks"], pancar: ["Şeker pancarı", "tarim", "pancar"], pnsof: ["Pancar", "tarim", "pancar"] };
 const HI = { ac: null };
 const hiHesaplar = () => S.lk.hesaplar.filter(h => h.aktif !== false && (h.tur === "Banka" || h.tur === "Kasa"))
   .sort((a, b) => kisiAd(a.kisi_id).localeCompare(kisiAd(b.kisi_id), "tr") || (a.tur === "Kasa") - (b.tur === "Kasa") || a.ad.localeCompare(b.ad, "tr"));
@@ -27119,7 +27344,7 @@ function hiSarmal(o) {
     },
     sil: async id => {
       const cur = o.bul(id), bag = await hiBagli(cur, o.tah(), o.mod);
-      await o.sil(id); if (bag) { await hiEsitle(cur.hareket_id, null); await hiOnbellek(o.tah(), null, cur.hareket_id); }
+      if (bag) { await hiEsitle(cur.hareket_id, null); await hiOnbellek(o.tah(), null, cur.hareket_id); } await o.sil(id);   // önce hareket: silinemezse satır da kalır (yetim hareket olmaz)
     },
     ekle: async r => {
       const id = await o.ekle(r); if (!r._hs || !id) return id;
@@ -27133,7 +27358,7 @@ function hiSarmal(o) {
 function hiAcilan(kaynak) { const a = HI.ac; if (!a || a.kaynak !== kaynak) return null; HI.ac = null; return a; }
 
 /* ---------- Hareketler tarafı: rozet ve bilgi çekmecesi ---------- */
-const hiRozet = h => { const k = HI_KAYNAK[h.ek?.kaynak]; return k ? ` <span class="link-badge" title="${esc(T("{k} sayfasından otomatik; tarih, tutar ve hesabı orada değiştirin", { k: T(k[0]) }))}">${esc(T(k[0]))}</span>` : ""; };
+const hiRozet = h => { const k = HI_KAYNAK[h.ek?.kaynak]; return k ? ` <span class="link-badge" title="${esc(T("{k} sayfasından otomatik; tarih, tutar ve hesabı orada değiştirin", { k: T(k[0]) }))}" >${esc(T(k[0]))}</span>` : ""; };
 function hiBilgi(h) {
   const k = HI_KAYNAK[h.ek.kaynak];
   const d = openDrawer(T("Otomatik hesap hareketi"), `
@@ -27340,7 +27565,7 @@ function tkHesap(y) {
     const islOk = !isl || h.isletme_id === isl, elle = EKS.has(h.id);
     // ürün dışı (kamulaştırma, dava…) ve makine işleri: ayrı satır
     const hd = (gid.has(h.kategori_id) && islOk) || a.gelir[h.kategori_id] || elle ? tkHedef(h) : null;
-    if (hd) { if (!islOk && !elle) continue; if ((h.ek?.sezon ? +h.ek.sezon : +h.tarih.slice(0, 4)) !== y) continue;
+    if (hd) { if (gid.has(h.kategori_id) && !islOk && !elle) continue; if ((h.ek?.sezon ? +h.ek.sezon : +h.tarih.slice(0, 4)) !== y) continue;
       const ad = hd === "mak" ? T("Makine işleri") : kategori(h.kategori_id)?.ad || "—", o = DIS.get(ad) || { ad, mak: hd === "mak", gelir: 0, gider: 0, L: [] }, t = tkTutar(h);
       if (t >= 0) o.gelir += t; else o.gider -= t; o.L.push(h); DIS.set(ad, o); continue; }
     if ((gid.has(h.kategori_id) && islOk) || (elle && h.yon !== "Giren")) {
@@ -27355,7 +27580,6 @@ function tkHesap(y) {
       // gelir: hareketin kendi seçimi (ürün / ortak), yoksa kategorinin varsayılanı; ürün yoksa ortak gelir (ortak giderden düşer, ürünlere alanla dağılır)
       const UL = h.ek?.ortak ? [] : tkUrunL(h).length ? tkUrunL(h) : tkGelU(h.kategori_id);
       if (!UL.length) {
-        if (!islOk && !elle) continue;
         if ((h.ek?.sezon ? +h.ek.sezon : +h.tarih.slice(0, 4)) !== y) continue;
         ortGel += tkTutar(h); ortGL.push(h); continue;
       }
@@ -27483,6 +27707,8 @@ function tkHedef(h) {
 const tkDag = h => { const d = h?.ek?.dag || TK.a?.dag?.[h?.kategori_id]; return TK_DAG[d] ? d : "alan"; };
 const tkW = (r, dg) => !r ? 0 : dg === "sulu" ? r.sulu || 0 : dg === "kuru" ? Math.max(0, (r.alan || 0) - (r.sulu || 0)) : r.alan || 0;
 const tkGelU = k => { const v = TK.a?.gelir?.[k]; return Array.isArray(v) ? v.filter(Boolean) : v && !String(v).startsWith("__") ? [v] : []; };   // gelir kategorisinin ürünleri (birden çoksa alana göre bölünür)
+// hareketin atanabileceği sezonlar: o sezonun kârlılığı (y−1) 1 Haziran – (y+2) 31 Ocak arasını yükler; dışına atanan hareket hiçbir yılda görünmezdi
+const tkSezonL = (d, L) => L.filter(z => `${z - 1}-06-01` <= d && d <= `${z + 2}-01-31`);
 const tkUrunL = h => { const u = h?.ek?.urun; return Array.isArray(u) ? u.filter(Boolean) : u ? [u] : []; };
 // gideri bir ya da birkaç ürüne bağla: ürünler ekili alanları oranında paylaşır
 function tkUrunSec(h, H, y, don) {
@@ -27493,7 +27719,7 @@ function tkUrunSec(h, H, y, don) {
     <div class="tk-us">${R.map(r => `<label><input type="checkbox" data-tku2="${esc(r.urun)}" ${sec.has(r.urun) ? "checked" : ""}> ${esc(r.urun)} <span class="faint">${r.alan ? pnN(r.alan, 1) + " da" + (r.sulu ? ` · ${T("sulu {s}", { s: pnN(r.sulu, 1) })}` : "") : ""}</span></label>`).join("")}</div>
     <div class="f" style="margin-top:10px">${T("Dağıtım esası")}<div class="seg" id="tkUsD" role="group">${Object.entries({ ...TK_DAG, ...TK_HEDEF }).map(([v, e]) => `<button type="button" data-tkd="${v}" aria-pressed="${(tkHedef(h) || tkDag(h)) === v}">${T(e)}</button>`).join("")}</div></div>
     <div class="hint" id="tkUsOn" style="margin-top:10px"></div>
-    <div class="frow" style="margin-top:12px"><label class="f">${T("Sezon (ÇKS yılı)")}<select class="i" id="tkUsS">${[y - 1, y, y + 1, y + 2].map(z => `<option value="${z}">${z}</option>`).join("")}</select></label>
+    <div class="frow" style="margin-top:12px"><label class="f">${T("Sezon (ÇKS yılı)")}<select class="i" id="tkUsS">${tkSezonL(h.tarih, [y - 2, y - 1, y, y + 1, y + 2]).map(z => `<option value="${z}">${z}</option>`).join("")}</select></label>
       <div class="hint" id="tkUsSH" style="align-self:end"></div></div>`,
     `<button class="btn left" id="tkUsOrt">${T("Ortak (dekarla)")}</button><button class="btn" id="tkUsVz">${T("Vazgeç")}</button><button class="btn primary" id="tkUsK">${T("Kaydet")}</button>`);
   const secili = () => $$("[data-tku2]:checked", d).map(c => c.dataset.tku2);
@@ -27552,7 +27778,7 @@ function tkDetay(H, r, st) {
   const d = openDrawer(T("{u} · {y} sezonu", { u: r.urun, y: H.y }), `
     <div class="hv-oz">
       <div class="hv-oz-s"><span>${T("Ekili alan")}</span><b class="num">${pnN(r.alan, 1)} da</b></div>
-      <div class="hv-oz-s"><span>${T("Satış geliri")}</span><b class="num">${nf2.format(r.satis)}</b></div>
+      <div class="hv-oz-s"><span>${T("Satış geliri")}</span><b class="num">${nf2.format(r.satis)}</b></div>${r.bek ? `<div class="hv-oz-s"><span class="tk-bek">${T("Beklenen (nakit akış)")}</span><b class="num tk-bek">${nf2.format(r.bek)}</b></div>` : ""}
       <div class="hv-oz-s"><span>${T("Destek (Destekler sayfasından)")}</span><b class="num">${nf2.format(r.destek)}</b></div>
       <div class="hv-oz-s"><span>${T("Doğrudan gider")}</span><b class="num">−${nf2.format(r.dog)}</b></div>
       ${!H.hv?.sulu && !H.hv?.kuru ? `<div class="hv-oz-s"><span>${T("Ortak gider payı ({a} / {t} da)", { a: pnN(r.alan, 1), t: pnN(H.WA, 1) })}</span><b class="num">−${nf2.format(r.ort)}</b></div>`
@@ -27641,7 +27867,7 @@ function tkHareketEkle(y, YN) {
       const kid = +g("teK").value || null, KS = kid ? KG.filter(k => k.id === kid) : null;
       if (KS && !KS.length) { L = []; } else {
         const P = KS ? (await Promise.all(KS.slice(0, 20).map(k => S.api.liste({ ...f, kategori_id: k.id }, 0, 300)))).flat() : await S.api.liste(f, 0, 300);
-        const var_ = new Set([...TK.H.map(h => h.id), ...(TK.a.ekle || [])]); L = P.filter(h => !h.transfer_id && !var_.has(h.id)).sort((a, b) => b.tarih.localeCompare(a.tarih)); } } catch (e) { g("teL").innerHTML = `<div class="empty">${esc(errMsg(e))}</div>`; return; }
+        const isl = TK.a.isletme_id, var_ = new Set([...TK.H.filter(h => (TK.a.gider.includes(h.kategori_id) && (!isl || h.isletme_id === isl)) || TK.a.gelir[h.kategori_id]).map(h => h.id), ...(TK.a.ekle || [])]); L = P.filter(h => !h.transfer_id && !var_.has(h.id)).sort((a, b) => b.tarih.localeCompare(a.tarih)); } } catch (e) { g("teL").innerHTML = `<div class="empty">${esc(errMsg(e))}</div>`; return; }
     g("teL").innerHTML = L.length ? `<div class="tw" style="max-height:420px;overflow:auto"><table class="t"><thead><tr><th><input type="checkbox" id="teHep"></th><th>${T("Tarih")}</th><th>${T("Kategori")}</th><th>${T("İşletme")}</th><th>${T("Açıklama")}</th><th class="r">${T("Tutar")}</th></tr></thead>
       <tbody>${L.map(h => `<tr><td><input type="checkbox" data-tes="${h.id}"></td><td class="num">${fdate(h.tarih)}</td><td>${esc(kategori(h.kategori_id)?.ad || "")}</td><td class="muted">${esc(isletmeAd(h.isletme_id) || "")}</td><td class="muted">${esc([h.aciklama1, h.aciklama2].filter(Boolean).join(" · "))}</td><td class="r num ${h.yon === "Giren" ? "pos" : ""}">${h.yon === "Giren" ? "+" : "−"}${nf2.format(+h.tutar)}</td></tr>`).join("")}</tbody></table></div>`
       : `<div class="empty">${T("Bu aramaya uyan, henüz kârlılıkta olmayan hareket yok.")}</div>`;
@@ -27682,7 +27908,7 @@ function tkGelirBas(u, varsayilan) {
 function tkGelirSec(h, H, y, don) {
   if (!h) return;
   const top = Math.abs(tkTutar(h)), bol = Array.isArray(h.ek?.bol) ? h.ek.bol : null, UL0 = h.ek?.ortak ? [] : tkUrunL(h).length ? tkUrunL(h) : tkGelU(h.kategori_id), u0 = UL0[0] || "", s0 = bol ? +bol[0].sezon : UL0.length ? tkSezon(h, u0, true) : h.ek?.sezon ? +h.ek.sezon : +h.tarih.slice(0, 4);
-  const U = [...new Set([...H.R.map(r => r.urun), ...UL0].filter(u => u && u !== "Nadas"))], ys = [y - 2, y - 1, y, y + 1];
+  const U = [...new Set([...H.R.map(r => r.urun), ...UL0].filter(u => u && u !== "Nadas"))], ys = tkSezonL(h.tarih, [y - 2, y - 1, y, y + 1, y + 2]);
   const opt = v => ys.concat(v).filter((x, i, A) => A.indexOf(x) === i).sort().map(z => `<option value="${z}" ${+v === z ? "selected" : ""}>${z}</option>`).join("");
   const d = openDrawer(T("Gelir hangi ürünlere ait"), `
     <div class="hint" style="margin-bottom:10px">${esc([fdate(h.tarih), kategori(h.kategori_id)?.ad, h.aciklama1, h.aciklama2].filter(Boolean).join(" · "))} · <b>${nf2.format(top)}</b></div>
@@ -27751,7 +27977,7 @@ function tkOrtGelir(y) {
     <div class="hint" style="margin-bottom:10px">${T("Bu sezona yazılan ortak gelirler (varsayılan: tarihin yılı). Önceki yılın işi bu yıl tahsil edildiyse sezonunu değiştirin. Bir ürüne ait olan (ör. fabrikanın pancar nakliye desteği) için ürünü seçin: o ürünün geliri olur; geri almak için ürün penceresinde Değiştir › Ortak gelir yap.")}</div>
     ${L.length ? `<div class="tw"><table class="t"><thead><tr><th>${T("Tarih")}</th><th>${T("Kategori")}</th><th>${T("Açıklama")}</th><th class="r">${T("Tutar")}</th><th>${T("Sezon")}</th><th title="${esc(T("Ürüne ait gelir (ör. pancar nakliye desteği) o ürünün geliri olur"))}">${T("Ürün")}</th></tr></thead><tbody>
       ${L.map(h => { const s0 = h.ek?.sezon ? +h.ek.sezon : +h.tarih.slice(0, 4); return `<tr><td class="num">${fdate(h.tarih)}</td><td>${esc(kategori(h.kategori_id)?.ad || "")}</td><td class="muted">${esc([h.aciklama1, h.aciklama2].filter(Boolean).join(" · "))}</td><td class="r num">${nf2.format(tkTutar(h))}</td>
-        <td><select class="i" data-ogs="${h.id}" style="width:auto">${[y - 2, y - 1, y, y + 1].map(z => `<option value="${z}" ${z === s0 ? "selected" : ""}>${z}</option>`).join("")}</select></td>
+        <td><select class="i" data-ogs="${h.id}" style="width:auto">${tkSezonL(h.tarih, [y - 2, y - 1, y, y + 1, y + 2]).map(z => `<option value="${z}" ${z === s0 ? "selected" : ""}>${z}</option>`).join("")}</select></td>
         <td><select class="i" data-ogu="${h.id}" style="width:auto"><option value="">${T("Ortak")}</option>${UR.map(u => `<option>${esc(u)}</option>`).join("")}</select></td></tr>`; }).join("")}</tbody></table></div>` : `<div class="hint">${T("Yok")}</div>`}
     ${ic.length ? `<div class="hint" style="margin-top:10px">${T("Ayrıca: kendi makine işi ve beklenen kalemler {t} (bunlar Kendi makine işi penceresinden ve nakit akıştan değişir).", { t: money(ic.reduce((t, h) => t + tkTutar(h), 0)) })}</div>` : ""}`,
     `<button class="btn" id="ogK">${T("Kapat")}</button>`);
@@ -27850,7 +28076,7 @@ function gdHesap(a = GD.a) {
 function gdKarlilik(y) {
   if (!GD.a) return { kat: new Set(), L: [] };
   const K = gdHesap(), L = [];
-  for (const s of K.values()) for (const h of s.H) if (h.tur === "kullanim" && (h.hedef === "urun" || h.hedef === "ortak")) {
+  for (const s of K.values()) for (const h of s.H) if (h.tur === "kullanim" && (h.hedef === "urun" || h.hedef === "ortak" || h.hedef === "diger")) {   // diğer / fire de ortak gider (alımı gider sayılmadığı için yoksa kaybolurdu)
     const sz = h.sezon ? +h.sezon : tkSezon({ tarih: h.tarih, ek: {} }, h.hedef === "urun" ? tkUrunT([].concat(h.urun || [])) : null, false);
     if (sz === y) L.push({ ...h, kalemAd: s.k.ad });
   }

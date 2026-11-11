@@ -431,7 +431,7 @@ input.i.ara-sec{padding-right:28px;background-image:url("data:image/svg+xml,%3Cs
 .nk-col + .nk-col{border-left:1px solid var(--line)}
 .nk-col-h{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 16px;border-bottom:1px solid var(--line);font-size:13px}
 .nk-col-h .num{margin-left:auto;font-size:12.5px}
-.nk-scroll{overflow-y:auto;overscroll-behavior:contain}
+.nk-scroll{overflow-y:auto}
 @media (max-width:1100px){.nk-cols{grid-template-columns:minmax(0,1fr)}.nk-col + .nk-col{border-left:0;border-top:1px solid var(--line)}}
 /* özet: bakiyeler + işletmeler (sol) | son kayıtlar (sağ, aynı yükseklik) */
 .ozet-alt{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,3fr);gap:16px;margin-top:16px;align-items:start}
@@ -1922,6 +1922,15 @@ table.ck-tl.ck-tl-ur{margin-top:6px;width:auto;align-self:flex-start}
 .pn-ver-g{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}.pn-ver-oz{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:12px;padding:10px 12px;background:var(--surface-2);border-radius:8px;font-size:13px}.pn-ver-oz b{margin-left:4px}
 .pn-ver .i.amount{font-size:14px;font-family:var(--f-mono)}
 .hy-rd{flex-direction:row;align-items:center;gap:6px;font-size:12.5px;color:var(--muted)}.hy-rd .i{width:70px;font-size:13px;padding:3px 6px}
+/* telefon: çekmece (ve üstündeki onay kutusu) alt çubuğun üstünde açılır; Kaydet / Vazgeç düğmeleri alt çubuğun altında kalmasın */
+@media (max-width:820px){.scrim{z-index:52}.drawer{z-index:53}.modal-scrim{z-index:54}.modal{z-index:55}}
+/* telefon: sayfa içindeki kaydırmalı kutular (Yaklaşanlar sütunları, uzun tablolar) tam boy açılır; parmak kutunun içine denk gelince sayfa takılmadan aşağı kayar */
+@media (max-width:820px){
+  .nk-scroll,.tw.tall,.tw.t27,.sd-gecmis,.hv-gun,.dpa-tw,.main .tw[style*="max-height"],.tk-iki-k>.tw{max-height:none!important;overscroll-behavior:auto}
+  .nk-scroll{overflow-y:visible}
+  tr.mob-gz{display:none}.mob-tum{display:block;width:100%;margin:6px 0 2px;text-align:center}
+}
+@media (max-width:820px){.tk-ipucu{display:none}.tk-hb{justify-content:flex-start!important}}
 
 </style>
 
@@ -6604,6 +6613,7 @@ const EN = {
   "/adet": "/head",
   "/kg karkas": "/kg carcass",
   "/kg": "/kg",
+  "Tümünü göster ({n})": "Show all ({n})",
 };
 
 /* =====================================================================
@@ -8402,6 +8412,17 @@ function yazdirSayfa(html, o = {}) {
   const bitti = () => { document.body.classList.remove("yazdir"); d.remove(); st?.remove(); window.removeEventListener("afterprint", bitti); };
   window.addEventListener("afterprint", bitti);
   window.print();
+}
+// telefon: uzun listede ilk n satır, altında "Tümünü göster" (kutu içinde kaydırma yerine; parmak kutuya takılmasın)
+const mobMu = () => matchMedia("(max-width:820px)").matches;
+function mobKisalt(kutu, n = 6) {
+  if (!kutu) return; const eski = kutu.nextElementSibling; if (eski?.classList.contains("mob-tum")) eski.remove();
+  const R = [...kutu.querySelectorAll("tbody tr")].filter(tr => !tr.hidden); R.forEach(tr => tr.classList.remove("mob-gz"));
+  if (!mobMu() || kutu.dataset.mobAcik || R.length <= n + 1) return;
+  R.slice(n).forEach(tr => tr.classList.add("mob-gz"));
+  const b = document.createElement("button"); b.type = "button"; b.className = "btn sm ghost mob-tum"; b.textContent = T("Tümünü göster ({n})", { n: R.length });
+  b.onclick = () => { kutu.dataset.mobAcik = "1"; R.forEach(tr => tr.classList.remove("mob-gz")); b.remove(); };
+  kutu.after(b);
 }
 function closeDrawer() { $(".drawer")?.remove(); $(".scrim")?.remove(); }
 function confirmBox(text, okLabel) {
@@ -14370,7 +14391,7 @@ async function renderNakitPanel(pre) {
       $$("[data-nktah]", P0).forEach(b => b.onclick = () => { NK_PANEL.gunluk = !NK_PANEL.gunluk; store.set("nkPanelGunluk", NK_PANEL.gunluk); renderNakitPanel(pre); });
       $$("[data-hat]", P0).forEach(el => { const git = () => { const [v, s] = el.dataset.hat.split(":"); if (s) ozHatSekme(v, s); go(v); }; el.onclick = git; el.onkeydown = e => { if (e.key === "Enter") git(); }; });
       // 10 satır görünür, fazlası kutunun içinde aşağı kayar
-      $$(".nk-scroll", P0).forEach(w => { const tr = w.querySelectorAll("tbody tr"); if (tr.length > max) w.style.maxHeight = tr[max].offsetTop + "px"; });
+      $$(".nk-scroll", P0).forEach(w => { const tr = w.querySelectorAll("tbody tr"); if (tr.length > max) w.style.maxHeight = tr[max].offsetTop + "px"; mobKisalt(w); });
     }
     $$("[data-go3]", P0).forEach(b => b.onclick = () => { S.nakit.tab = "plan"; store.set("nakitTab", "plan"); go("nakit"); });
   } catch (e) { P0.innerHTML = `<div class="empty">${T("Nakit akış yüklenemedi:")} ${esc(errMsg(e))}</div>`; }
@@ -27416,7 +27437,7 @@ function tkCiz0() {
       <div class="panel tile"><span class="eyebrow">${T("Kâr")}</span><span class="v ${H.karTop < 0 ? "neg" : "pos"}">${money(H.karTop)}</span><span class="s">${H.DL.length ? T("ürünler {k} · ürün dışı {d}", { k: nf0.format(H.kar), d: nf0.format(H.disNet) }) : T("{y} sezonu", { y })}</span></div>
       <div class="panel tile"><span class="eyebrow">${H.DL.length ? T("Ürün kârı (TL/da)") : T("Kâr (TL/da)")}</span><span class="v">${H.alan ? money(H.kar / H.alan) : "—"}</span><span class="s">${T("{a} da ekili", { a: pnN(H.alan, 1) })}</span></div>
     </div>
-    <section class="panel"><div class="panel-h"><h2>${T("Ürün bazında kârlılık · {y}", { y })}</h2><div style="display:flex;gap:8px;align-items:center"><label class="switch" title="${esc(T("Nakit akışta ödenmemiş (tahmini ya da kesinleşmiş) gelir ve giderler de hesaba katılır; ödenince yerini gerçek hareket alır"))}"><input type="checkbox" id="tkBek" ${TK.bek ? "checked" : ""}> ${T("Beklenenler dahil")}</label><span class="muted">${T("Satıra tıklayınca hareketler açılır")}</span><button class="btn sm" id="tkIsr" title="${esc(T("Ürüne ya da sezona bağlanmış bütün giderler; yanlış olanı düzeltin"))}">${T("Bağlanmış giderler")}</button><button class="btn sm" id="tkIcis" title="${esc(T("Kendi ürününüze kendi makinenizle yaptığınız iş (ör. havuç söküm): iç fiyatla ürüne gider, ortak gelire gelir yazılır"))}">${T("Kendi makine işi")}</button><button class="btn sm" id="tkAyar">${T("Kategoriler")}</button></div></div>
+    <section class="panel"><div class="panel-h"><h2>${T("Ürün bazında kârlılık · {y}", { y })}</h2><div class="tk-hb" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end"><label class="switch" title="${esc(T("Nakit akışta ödenmemiş (tahmini ya da kesinleşmiş) gelir ve giderler de hesaba katılır; ödenince yerini gerçek hareket alır"))}"><input type="checkbox" id="tkBek" ${TK.bek ? "checked" : ""}> ${T("Beklenenler dahil")}</label><span class="muted tk-ipucu">${T("Satıra tıklayınca hareketler açılır")}</span><button class="btn sm" id="tkIsr" title="${esc(T("Ürüne ya da sezona bağlanmış bütün giderler; yanlış olanı düzeltin"))}">${T("Bağlanmış giderler")}</button><button class="btn sm" id="tkIcis" title="${esc(T("Kendi ürününüze kendi makinenizle yaptığınız iş (ör. havuç söküm): iç fiyatla ürüne gider, ortak gelire gelir yazılır"))}">${T("Kendi makine işi")}</button><button class="btn sm" id="tkAyar">${T("Kategoriler")}</button></div></div>
       ${H.R.length ? `<div class="tw"><table class="t tk-t"><thead><tr><th>${T("Ürün")}</th><th class="r">${T("Ekili (da)")}</th><th class="r">${T("Satış")}</th>${BK ? `<th class="r" title="${esc(T("Nakit akışta henüz tahsil edilmemiş satış"))}">${T("Beklenen")}</th>` : ""}<th class="r">${T("Destek")}</th><th class="r">${T("Doğrudan gider")}</th>
           <th class="r" title="${esc(T("Ürüne işaretlenmemiş giderler, ekili alana göre"))}">${T("Ortak gider payı")}</th><th class="r">${T("Kâr")}</th><th class="r">${T("Gelir / da")}</th><th class="r">${T("Gider / da")}</th><th class="r">${T("Kâr / da")}</th></tr></thead>
         <tbody>${H.R.map(r => `<tr class="click" data-tku="${esc(r.urun)}" tabindex="0"><td>${esc(r.urun)}</td><td class="r num">${r.alan ? pnN(r.alan, 1) : `<span class="faint">·</span>`}</td><td class="r num">${m0(r.satis)}</td>${BK ? `<td class="r num tk-bek">${m0(r.bek)}</td>` : ""}<td class="r num">${m0(r.destek)}</td>
@@ -27769,7 +27790,7 @@ function tkListeBagla(S0) {
     const lb = $(".tk-lb", S0); if (lb) lb.innerHTML = `<span>${esc(k ? T("Hareketler · {k} · {n} kayıt", { k, n }) : T("Hareketler · {n} kayıt", { n }))}</span>${k ? `<button class="btn ghost sm tk-kfx">${icon("x")} ${T("Filtreyi kaldır")}</button>` : ""}
       ${m ? `<label class="switch tk-okg"><input type="checkbox" class="tk-okgi" ${TK.okGs[k0] ? "checked" : ""}> ${esc(T("Kontrol edilenleri göster ({m})", { m }))}</label>` : ""}`;
     $(".tk-kfx", S0)?.addEventListener("click", () => { TK.kfs[k0] = null; kf(); });
-    $(".tk-okgi", S0)?.addEventListener("change", e => { TK.okGs[k0] = e.target.checked; kf(); }); };
+    $(".tk-okgi", S0)?.addEventListener("change", e => { TK.okGs[k0] = e.target.checked; kf(); }); mobKisalt($(".tk-iki-k > .tw", S0), 8); };
   $$("[data-tkok]", S0).forEach(c => c.onchange = () => { const id = +c.dataset.tkok, A = new Set(TK.a.kontrol || []); if (c.checked) { OK.add(id); A.add(id); } else { OK.delete(id); A.delete(id); }
     TK.a.kontrol = [...A]; const a = TK.a;
     TK.okQ = (TK.okQ || Promise.resolve()).then(() => S.api.ayarKaydet("tarim_kar", a)).catch(e => toast(errMsg(e), true)); kf(); });

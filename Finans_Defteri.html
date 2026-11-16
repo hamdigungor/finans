@@ -2113,6 +2113,11 @@ table.ck-tl.ck-tl-ur{margin-top:6px;width:auto;align-self:flex-start}
 #yazdirAlani.nb-coklu .nt{font-size:8pt;color:#5B6678}
 #yazdirAlani.nb-coklu .nb-dip{display:flex;justify-content:space-between;margin-top:auto;padding-top:2mm;font-size:9pt;color:#5B6678}
 
+/* depo hızlı giriş: fiyat farkında taksit hücresinde "önceki ay" işareti */
+.qd-onc{display:inline-flex;align-items:center;gap:3px;font-size:10.5px;line-height:1.05;white-space:normal;color:var(--muted);cursor:pointer;text-align:left}
+.qd-onc[hidden]{display:none}
+.qd-onc input{margin:0;accent-color:var(--accent)}
+
 </style>
 </head>
 <body>
@@ -7373,6 +7378,27 @@ const EN = {
   "Son ay ilk aydan önce olamaz.": "The last month cannot be before the first.",
   "En çok 36 ay yazdırılabilir.": "At most 36 months can be printed.",
   "{n} ay · {n} sayfa": "{n} months · {n} pages",
+  "\"Önceki ayın borcundan düş\" işaretinin kaydedilmesi için güncel kurulum.sql dosyasını Supabase'te bir kez çalıştırın.": "To save the \"Deduct from the previous month's debt\" mark, run the current kurulum.sql once in Supabase.",
+  "Önceki ayın borcundan düş": "Deduct from the previous month's debt",
+  "İşaretlerseniz bu fiyat farkı nakit akışta kesildiği ayın alımından değil, bir önceki ayın açık hesap borcundan düşülür (ör. Ekim sonu 100.000 ₺, Kasım'da 10.000 ₺ fiyat farkı → Ekim kalemi 90.000 ₺). Cari durum ve ekstre değişmez.": "If ticked, this price difference is deducted in the cash flow from the previous month's open-account debt instead of the month it was issued (e.g. October end ₺100,000, ₺10,000 price difference in November → October item ₺90,000). The supplier balance and statement do not change.",
+  "Nakit akışta bir önceki ayın açık hesap borcundan düşülür": "Deducted from the previous month's open-account debt in the cash flow",
+  "önceki ay": "previous month",
+  "İşaretlerseniz bu fatura (fiyat farkı ya da ciro primi) nakit akışta kesildiği ayın alımından değil, bir önceki ayın açık hesap borcundan düşülür (ör. Ekim sonu 100.000 ₺, Kasım'da 10.000 ₺ fiyat farkı → Ekim kalemi 90.000 ₺). Cari durum ve ekstre değişmez.": "If ticked, this invoice (price difference or turnover bonus) is deducted in the cash flow from the previous month's open-account debt instead of the month it was issued (e.g. October end ₺100,000, ₺10,000 price difference in November → October item ₺90,000). The supplier balance and statement do not change.",
+  "Bu seçimin kaydedilmesi için güncel kurulum.sql dosyasını Supabase'te bir kez çalıştırın.": "To save this choice, run the current kurulum.sql once in Supabase.",
+  "fatura mahsubu −{t}": "invoice offset −{t}",
+  "{t} fatura mahsubu düşüldü": "{t} invoice offset deducted",
+  "Nakit akışta nereden düşülsün": "Where to deduct in the cash flow",
+  "Kesildiği ayın alımından": "From the month it was issued",
+  "Önceki ayın borcundan": "From the previous month's debt",
+  "Çek / senetten": "From a cheque / note",
+  "Düşülecek çek / senet": "Cheque / note to deduct from",
+  "Bu fatura nakit akışta kesildiği ayın alımından değil, bir önceki ayın açık hesap borcundan düşülür. Cari durum ve ekstre değişmez.": "In the cash flow this invoice is deducted from the previous month's open-account debt, not from the month it was issued. The supplier balance and statement do not change.",
+  "Seçtiğiniz çek / senet nakit akışta ve kart çekim planında bu fatura kadar az görünür; açık hesap kalemlerinden ayrıca düşülmez. Cari durumda çek / senet tutarı değişmez.": "The chosen cheque / note is shown this much lower in the cash flow and the card charge plan; it is not deducted again from open-account items. The cheque / note amount in the supplier balance does not change.",
+  "kapanmış": "closed",
+  "Bu depoda açık çek / senet yok": "No open cheque / note at this supplier",
+  "{v} vadeli {t} {b} tutarından düşüldü": "deducted from the {t} {b} due {v}",
+  "düşülecek çek / senet": "cheque / note to deduct from",
+  "Nakit akışta ve kart çekim planında {v} vadeli {b} tutarından düşülür": "Deducted from the {b} due {v} in the cash flow and the card charge plan",
 };
 
 /* =====================================================================
@@ -7808,7 +7834,15 @@ function liveApi(url, key) {
       const q = (sec, opt) => { let x = sb.from("depo_hareketleri").select(sec, opt); if (f.from) x = x.gte("tarih", f.from); if (f.to) x = x.lte("tarih", f.to); if (f.isletme_id) x = x.eq("isletme_id", f.isletme_id); if (f.depo_id) x = x.eq("depo_id", f.depo_id); return x; };
       const { count, error } = await q("id", { count: "exact", head: true }); if (error) throw error;
       const sayfa = []; for (let o = 0; o < (count || 0); o += 1000) sayfa.push(o);
-      const parca = await Promise.all(sayfa.map(o => q("id,tarih,isletme_id,depo_id,islem_id,yon,tutar,vade").order("id").range(o, o + 999).then(chk)));
+      const oku = sec => Promise.all(sayfa.map(o => q(sec).order("id").range(o, o + 999).then(chk)));
+      const TEMEL = "id,tarih,isletme_id,depo_id,islem_id,yon,tutar,vade";
+      // onceki_ay / dus_belge sütunları henüz yoksa (kurulum.sql çalıştırılmamış) sırayla daha dar seçime düşülür: işaretsiz sayılır
+      const SEC = [TEMEL + ",onceki_ay,dus_belge", TEMEL + ",onceki_ay", TEMEL];
+      let parca;
+      for (let i = S.depoSecYok || 0; i < SEC.length; i++) {
+        try { parca = await oku(SEC[i]); S.depoSecYok = i; break; }
+        catch (e) { if (i === SEC.length - 1 || (!/onceki_ay|dus_belge/.test(`${e?.message || ""} ${e?.details || ""}`) && e?.code !== "42703")) throw e; }
+      }
       return depoZenginle(parca.flat());
     },
     // net servet için: bir tarihten sonraki hesap hareketleri (yalnız hesap, para birimi, tarih, net), sayfalar paralel
@@ -7863,6 +7897,13 @@ function liveApi(url, key) {
       } catch (e) { return depoTarihHesap(await this.tumDepo(), t); }   // kurulum.sql henüz güncellenmediyse
     },
     async depoSon(n) { return chk(await sb.from("v_depo_hareketleri").select("*").order("id", { ascending: false }).limit(n)); },
+    // bir çek / senetten düşülecek fiyat farkı / ciro primi faturaları (dus_belge dolu kayıtlar); sütun yoksa boş
+    async depoDusumler() {
+      if (S.dusBelgeYok) return [];
+      const { data, error } = await sb.from("depo_hareketleri").select("id,tarih,isletme_id,depo_id,tutar,dus_belge").not("dus_belge", "is", null);
+      if (error) { if (/dus_belge/.test(`${error.message || ""} ${error.details || ""}`) || error.code === "42703") { S.dusBelgeYok = true; return []; } throw error; }
+      return data || [];
+    },
     async depoEkle(row) { return chk(await sb.from("depo_hareketleri").insert(row).select("id")); },
     async depoHareketId(id) { return chk(await sb.from("depo_hareketleri").select("hareket_id").eq("id", id).maybeSingle())?.hareket_id ?? null; },
     async depoGuncelle(id, patch) { return chk(await sb.from("depo_hareketleri").update(patch).eq("id", id)); },
@@ -8221,6 +8262,7 @@ function demoApi() {
       return tick([...m.values()]);
     },
     async depoSon(n) { return tick(D.depo.slice().sort((a, b) => b.id - a.id).slice(0, n).map(dview)); },
+    async depoDusumler() { return tick(D.depo.filter(d => d.dus_belge).map(d => ({ id: d.id, tarih: d.tarih, isletme_id: d.isletme_id, depo_id: d.depo_id, tutar: +d.tutar, dus_belge: d.dus_belge }))); },
     async depoEkle(row) { const isl = byId(D.depoIslemleri, row.islem_id); const d = { aciklama2: null, aciklama3: null, hareket_id: null, onay: true, ...row, yon: isl.yon, id: dseq++, olusturma: new Date().toISOString() }; D.depo.push(d); syncFromDepo(d); return tick([{ id: d.id }]); },
     async depoHareketId(id) { return tick(byId(D.depo, id)?.hareket_id ?? null); },
     async depoGuncelle(id, patch) { dnYaz("depo_hareketleri", "degistir", byId(D.depo, id), patch); const d = byId(D.depo, id); Object.assign(d, patch); if (patch.islem_id) d.yon = byId(D.depoIslemleri, d.islem_id).yon; syncFromDepo(d); return tick(); },
@@ -8982,6 +9024,24 @@ const kategori = id => lkBul(S.lk.kategoriler, id);
 const rolKategori = rol => S.lk.kategoriler.find(k => k.rol === rol);
 const isletmeAd = id => lkBul(S.lk.isletmeler, id)?.ad ?? "";
 const depoIslem = id => lkBul(S.lk.depoIslemleri, id);
+// fiyat farkı ve ciro primi faturası: "Önceki ayın borcundan düş" işareti yalnız bu işlemlerde sorulur (depo_hareketleri.onceki_ay)
+const depoFiyatFarki = isl => /fiyat farki|ciro primi/.test(trFold(isl?.ad || ""));
+// çek / senetten düşülecek faturalar: depoBelgeler() her belgeye "dusum" (o belgeden düşülecek toplam) ekler.
+// Cari durum bu alanı kullanmaz (çek / senet tutarı aynı görünür); nakit akış ve kart çekim planı kullanır.
+const dusBelgeAnahtar = (isl, depo, belge, vade) => `${isl}|${depo}|${belge}|${vade}`;
+const dusBelgeCoz = v => { const m = /^(Çek|Senet):(\d{4}-\d{2}-\d{2})$/.exec(String(v || "")); return m ? { belge: m[1], vade: m[2] } : null; };
+function belgeDusumSar(api) {
+  const asil = api.depoBelgeler.bind(api);
+  api.depoBelgeler = async (...a) => {
+    const [B, D] = await Promise.all([asil(...a), typeof api.depoDusumler === "function" ? api.depoDusumler().catch(() => []) : []]);
+    if (!D?.length) return B;
+    const M = new Map(); for (const d of D) { const c = dusBelgeCoz(d.dus_belge); if (!c) continue; const k = dusBelgeAnahtar(d.isletme_id, d.depo_id, c.belge, c.vade); M.set(k, (M.get(k) || 0) + +d.tutar); }
+    for (const b of B || []) { const v = M.get(dusBelgeAnahtar(b.isletme_id, b.depo_id, b.belge, b.vade)); if (v > 0) b.dusum = Math.round(v * 100) / 100; }
+    return B;
+  };
+  return api;
+}
+const ONCEKI_AY_SQL = () => T("Bu seçimin kaydedilmesi için güncel kurulum.sql dosyasını Supabase'te bir kez çalıştırın.");
 // vade girilebilen depo işlemleri: çek / senet (zorunlu), alış faturası (kan ürünü gibi vadeli faturalar) ve açık hesap ödemeleri
 // (vadeli faturanın ödemesi aynı vadeyle yazılınca o fatura kapanmış sayılır)
 const depoVadeAcik = isl => !!isl && (!!isl.belge || isl.ad === "Alış Faturası" || /^Takas (Alınan|Verilen)$/.test(isl.ad || "") || (!!isl.odeme && isl.odeme !== "tahsilat"));   // takas vadesi: Çalışma koşulları › Fatura / takas vadesinde
@@ -9066,10 +9126,10 @@ const hesapPf = hid => [...pfEsleme()].filter(([, h]) => h == hid).map(([pf]) =>
 async function boot() {
   applyTheme();
   const cfg = store.get("config", null);
-  if (store.get("demo", DEMO_DEFAULT) || (!cfg && DEMO_DEFAULT)) { S.api = yazIzle(nkKoruSar(demoApi())); return startApp(); }
+  if (store.get("demo", DEMO_DEFAULT) || (!cfg && DEMO_DEFAULT)) { S.api = yazIzle(belgeDusumSar(nkKoruSar(demoApi()))); return startApp(); }
   if (!cfg) return renderWelcome();
   if (!window.supabase) { renderWelcome(T("Veritabanı kütüphanesi yüklenemedi. İnternet bağlantınızı kontrol edip sayfayı yenileyin."), cfg); return; }
-  try { S.api = yazIzle(nkKoruSar(liveApi(cfg.url, cfg.key))); } catch (e) { return renderWelcome(errMsg(e)); }
+  try { S.api = yazIzle(belgeDusumSar(nkKoruSar(liveApi(cfg.url, cfg.key)))); } catch (e) { return renderWelcome(errMsg(e)); }
   const sess = await S.api.session();
   if (!sess) return renderLogin();
   startApp();
@@ -9124,7 +9184,7 @@ function renderWelcome(err, typed = {}) {
       </ol></div></div>
   </div>`;
   bindLang(() => renderWelcome(err, { url: $("#cfgUrl")?.value, key: $("#cfgKey")?.value }));
-  $("#demoBtn").onclick = () => { store.set("demo", true); S.api = yazIzle(nkKoruSar(demoApi())); startApp(); };
+  $("#demoBtn").onclick = () => { store.set("demo", true); S.api = yazIzle(belgeDusumSar(nkKoruSar(demoApi()))); startApp(); };
   $("#cfgForm").onsubmit = async e => {
     e.preventDefault();
     const url = $("#cfgUrl").value.trim().replace(/\/+$/, ""), key = $("#cfgKey").value.trim();
@@ -10076,7 +10136,7 @@ async function depoHizli(B) {
         <td><input class="i amount" id="qdA" aria-label="${esc(T("Tutar"))}" placeholder="0,00"></td>
         <td><input class="i" id="qdV" aria-label="${esc(T("Vade"))}"></td>
         <td><input class="i" id="qdO" aria-label="${esc(T("Ödeme hesabı"))}"></td>
-        <td><input class="i" id="qdTk" aria-label="${esc(T("Taksit"))}" inputmode="numeric" maxlength="2" autocomplete="off"></td>
+        <td><input class="i" id="qdTk" aria-label="${esc(T("Taksit"))}" inputmode="numeric" maxlength="2" autocomplete="off"><label class="qd-onc" id="qdOncW" hidden title="${esc(T("Nakit akışta bir önceki ayın açık hesap borcundan düşülür"))}"><input type="checkbox" id="qdOnc"> ${T("önceki ay")}</label></td>
         <td><input class="i" id="qdN1" aria-label="${esc(T("Açıklama"))}"></td>
         <td><input class="i" id="qdN2" aria-label="${esc(T("Açıklama 2"))}"></td>
         <td class="c"><input type="checkbox" id="qdOk" aria-label="${esc(T("Onay"))}" ${V.onay ? "checked" : ""}></td></tr></tbody>
@@ -10088,7 +10148,8 @@ async function depoHizli(B) {
   const iC = comboBox($("#qdI", B), { key: "isletme", value: V.isletme_id, allowClear: true, options: () => S.lk.isletmeler.filter(i => i.aktif !== false).map(i => ({ v: i.id, l: i.ad })), onPick: v => V.isletme_id = v });
   const dC = comboBox($("#qdD", B), { key: "depo", value: V.depo_id, allowClear: true, options: () => S.lk.depolar.filter(x => x.aktif !== false).map(x => ({ v: x.id, l: x.ad, h: T(x.tur) })), onPick: v => V.depo_id = v });
   const odTur = () => ({ kredi_karti: ["Kredi Kartı"], eft: ["Banka"], kasa: ["Kasa"], tahsilat: ["Banka", "Kasa", "Kredi Kartı"] }[depoIslem(V.islem_id)?.odeme] || []);
-  const tkUpd = () => { const isl = depoIslem(V.islem_id), on = !!isl?.odeme && isl.odeme !== "tahsilat" && hesap(V.odeme_hesap_id)?.tur === "Kredi Kartı"; qgEnable($("#qdTk", B), on, on ? T("tek") : ""); if (!on) $("#qdTk", B).value = ""; };
+  const tkUpd = () => { const isl = depoIslem(V.islem_id), on = !!isl?.odeme && isl.odeme !== "tahsilat" && hesap(V.odeme_hesap_id)?.tur === "Kredi Kartı"; qgEnable($("#qdTk", B), on, on ? T("tek") : ""); if (!on) $("#qdTk", B).value = "";
+    const ff = depoFiyatFarki(isl); $("#qdOncW", B).hidden = !ff; $("#qdTk", B).hidden = ff; if (!ff) $("#qdOnc", B).checked = false; };
   const oC = comboBox($("#qdO", B), { key: "odemeHesap", value: V.odeme_hesap_id, empty: T("Hesaba işlenmesin"), options: () => S.lk.hesaplar.filter(h => h.aktif !== false && odTur().includes(h.tur)).map(h => ({ v: h.id, l: hesapAd(h.id), h: T(h.tur) })), onPick: v => { V.odeme_hesap_id = v; tkUpd(); } });
   selectOnFocus($("#qdTk", B));
   const islemUpd = () => {
@@ -10118,7 +10179,7 @@ async function depoHizli(B) {
     const tk = qgTaksit($("#qdTk", B)); if (tk == null) errs.push(["qdTk", T("taksit (1–{n})", { n: TAKSIT_MAX })]);
     if (errs.length) { errs.forEach(([id]) => $("#" + id, B).classList.add("bad")); toast(T("Eksik veya hatalı:") + " " + errs.map(x => x[1]).join(", "), true); $("#" + errs[0][0], B).focus(); return; }
     const r = { tarih, isletme_id: +V.isletme_id, depo_id: +V.depo_id, islem_id: isl.id, tutar, vade: vade || null, odeme_hesap_id: isl.odeme && V.odeme_hesap_id ? +V.odeme_hesap_id : null,
-      aciklama: $("#qdN1", B).value.trim() || null, aciklama2: $("#qdN2", B).value.trim() || null, onay: $("#qdOk", B).checked, ...(tk > 1 ? { taksit: tk } : {}) };
+      aciklama: $("#qdN1", B).value.trim() || null, aciklama2: $("#qdN2", B).value.trim() || null, onay: $("#qdOk", B).checked, ...(tk > 1 ? { taksit: tk } : {}), ...(depoFiyatFarki(isl) && $("#qdOnc", B).checked ? { onceki_ay: true } : {}) };
     const dup = QD.son.find(x => x.tarih === r.tarih && x.depo_id == r.depo_id && x.isletme_id == r.isletme_id && x.islem_id == r.islem_id && Math.abs(+x.tutar - r.tutar) < 0.005);
     if (dup && !(await confirmBox(T("Aynı tarih, depo, işlem ve tutarda bir kayıt az önce girildi. Yine de kaydedilsin mi?"), T("Kaydet")))) { $("#qdA", B).focus(); return; }
     busy = true; row.classList.add("busy");
@@ -10126,10 +10187,10 @@ async function depoHizli(B) {
       const res = await S.api.depoEkle(r);
       QD.oturum.push({ id: res?.[0]?.id, tutar: r.tutar, yon: isl.yon });
       store.set("depoLast", { isletme_id: r.isletme_id, depo_id: r.depo_id, islem_id: r.islem_id, odeme_hesap_id: V.odeme_hesap_id || "" });
-      aF.set(""); vF.set(""); $("#qdN1", B).value = ""; $("#qdN2", B).value = ""; $("#qdTk", B).value = ""; $("#qdOk", B).checked = false; V.onay = false;   // her kayıt ayrı onaylanır
+      aF.set(""); vF.set(""); $("#qdN1", B).value = ""; $("#qdN2", B).value = ""; $("#qdTk", B).value = ""; $("#qdOnc", B).checked = false; $("#qdOk", B).checked = false; V.onay = false;   // her kayıt ayrı onaylanır
       await depoHizliListe(B, res?.[0]?.id); kartEsitleSonra(r.odeme_hesap_id && res?.[0]?.id ? [await S.api.depoHareketId(res[0].id).catch(() => null)] : []);
       $("#qdT", B).focus();
-    } catch (e) { toast(errMsg(e), true); } finally { busy = false; row.classList.remove("busy"); }
+    } catch (e) { toast(/onceki_ay/.test(`${e?.message || ""} ${errMsg(e)}`) ? ONCEKI_AY_SQL() : errMsg(e), true); } finally { busy = false; row.classList.remove("busy"); }
   };
   row.addEventListener("keydown", e => { if (e.key === "Enter" && !e.isComposing) { e.preventDefault(); if (e.target.id === "qdT") tF.get(); kaydet(); } });
   $("#qSave", B).onclick = kaydet;
@@ -12222,7 +12283,7 @@ async function loadDepo() {
   Tb.innerHTML = rows.length ? `<table class="t dp-ht"><thead><tr>${secTh()}${[["tarih", "Tarih", ""], ["isletme", "İşletme", ""], ["depo", "Depo", ""], ["islem", "İşlem", ""], ["vade", "Vade", ""], ["tutar", "Tutar", "r"], ["onay", "Onay", "c"], ["aciklama", "Açıklama", "dp-ac"]]
       .map(([k, t, c]) => `<th class="${c} hs-s ${sr?.[0] === k ? (sr[1] > 0 ? "asc" : "desc") : ""}" data-dsir="${k}" tabindex="0" title="${esc(T("Sıralamak için tıklayın"))}" aria-sort="${sr?.[0] === k ? (sr[1] > 0 ? "ascending" : "descending") : "none"}">${T(t)}</th>`).join("")}</tr></thead><tbody>
     ${rows.map(r => `<tr class="${r.onay ? "" : "unapp"}" data-did="${r.id}">${secHucre(r.id)}<td class="num">${fdate(r.tarih)}</td><td>${esc(r.isletme)}</td><td>${esc(r.depo)}</td>
-      <td class="dp-is"><span class="dp-isad">${esc(T(r.islem))}</span>${r.hareket_id ? ` <span class="link-badge" title="${esc(T("Hesap hareketine bağlı"))}">${esc(r.odeme_hesap || T("Hesap"))}</span>` : ""}${+r.taksit > 1 ? ` <span class="badge">${esc(taksitEtiket(r))}</span>` : ""}</td><td class="num muted">${fdate(r.vade)}</td>
+      <td class="dp-is"><span class="dp-isad">${esc(T(r.islem))}</span>${r.dus_belge ? ` <span class="badge" title="${esc(T("Nakit akışta ve kart çekim planında {v} vadeli {b} tutarından düşülür", { v: fdate(dusBelgeCoz(r.dus_belge)?.vade), b: T(dusBelgeCoz(r.dus_belge)?.belge || "").toLocaleLowerCase("tr") }))}">${esc(T(dusBelgeCoz(r.dus_belge)?.belge || "") + " " + fdateShort(dusBelgeCoz(r.dus_belge)?.vade || ""))}</span>` : r.onceki_ay ? ` <span class="badge" title="${esc(T("Nakit akışta bir önceki ayın açık hesap borcundan düşülür"))}">${T("önceki ay")}</span>` : ""}${r.hareket_id ? ` <span class="link-badge" title="${esc(T("Hesap hareketine bağlı"))}">${esc(r.odeme_hesap || T("Hesap"))}</span>` : ""}${+r.taksit > 1 ? ` <span class="badge">${esc(taksitEtiket(r))}</span>` : ""}</td><td class="num muted">${fdate(r.vade)}</td>
       <td class="r num ${depoTutarCls(r)}">${money(Math.abs(+r.tutar))}</td><td class="c">${onayKutu(r)}</td><td class="dp-ac">${(() => { const t = [r.aciklama, r.aciklama2, r.aciklama3].filter(Boolean).join(" · "); return `<div class="desc" title="${esc(t)}">${esc(t)}</div>`; })()}</td></tr>`).join("")}
   </tbody></table>` : `<div class="empty">${T("Bu filtrelere uyan depo hareketi yok.")}</div>`;
   belgeIsaret(Tb, "depo_hareketleri", "did");
@@ -12358,6 +12419,10 @@ function openDepoEntry(preset = {}) {
       <label class="f">${T("İşlem")}<select class="i" id="dIslem">${depoIslemOptions(v.islem_id)}</select></label></div>
     <div class="frow"><label class="f">${T("Tutar")}<input class="i amount" id="dTutar" inputmode="decimal" placeholder="0,00" value="${fmtInput(v.tutar)}"></label>
       <label class="f" id="wdVade">${T("Vade")}<input class="i" type="date" id="dVade" value="${v.vade || ""}"></label></div>
+    <div id="wdOnc" hidden><div class="frow"><label class="f">${T("Nakit akışta nereden düşülsün")}<select class="i" id="dDus">
+        <option value="">${T("Kesildiği ayın alımından")}</option><option value="onceki" ${v.onceki_ay && !v.dus_belge ? "selected" : ""}>${T("Önceki ayın borcundan")}</option><option value="belge" ${v.dus_belge ? "selected" : ""}>${T("Çek / senetten")}</option></select></label>
+        <label class="f" id="wdDusB" hidden>${T("Düşülecek çek / senet")}<select class="i" id="dDusB"></select></label></div>
+      <div class="hint" id="dDusH"></div></div>
     <label class="f" id="wdAcik" hidden>${T("Açık çek / senet")}<select class="i" id="dAcik"></select></label>
     <label class="f" id="wdCek" hidden>${T("Çek no")}<input class="i mono" id="dCek" data-yazi="yok" autocomplete="off" placeholder="${esc(T("çek defterinden seçin ya da yazın"))}"></label>
     <div class="inv-box" id="wdOde"><span class="ttl">${T("Ödeme yapılan hesap")}</span>
@@ -12375,6 +12440,7 @@ function openDepoEntry(preset = {}) {
   const upd = () => {
     const isl = depoIslem(g("dIslem"));
     $("#wdVade", d).hidden = !depoVadeAcik(isl); $("#dVade", d).placeholder = isl?.belge ? "" : T("vadeliyse");
+    $("#wdOnc", d).hidden = !depoFiyatFarki(isl); dusCiz();
     const od = isl?.odeme; $("#wdOde", d).hidden = !od;
     if (od) {
       const tur = { kredi_karti: ["Kredi Kartı"], eft: ["Banka"], kasa: ["Kasa"], tahsilat: ["Banka", "Kasa", "Kredi Kartı"] }[od];
@@ -12385,12 +12451,30 @@ function openDepoEntry(preset = {}) {
     $("#dHint", d).textContent = isl ? (isl.yon === "Giren" ? T("Bu işlem depoya olan borcu artırır.") : T("Bu işlem depoya olan borcu azaltır.")) : "";
     tkUpd(); acikCiz(); $("#wdCek", d).hidden = !(!ed && isl?.belge === "Çek" && isl.belge_tip === "giris");
   };
+  // fiyat farkı / ciro primi: nakit akışta nereden düşüleceği (kesildiği ay · önceki ay · seçilen çek / senet)
+  const dus = () => { const isl = depoIslem(g("dIslem")), s = depoFiyatFarki(isl) ? g("dDus") : ""; return { onc: s === "onceki", belge: s === "belge" ? g("dDusB") || null : null }; };
+  const dusCiz = () => {
+    const s = g("dDus"), W = $("#wdDusB", d), H = $("#dDusH", d); if (!W) return; W.hidden = s !== "belge";
+    H.textContent = s === "onceki" ? T("Bu fatura nakit akışta kesildiği ayın alımından değil, bir önceki ayın açık hesap borcundan düşülür. Cari durum ve ekstre değişmez.")
+      : s === "belge" ? T("Seçtiğiniz çek / senet nakit akışta ve kart çekim planında bu fatura kadar az görünür; açık hesap kalemlerinden ayrıca düşülmez. Cari durumda çek / senet tutarı değişmez.") : "";
+    if (s !== "belge") return;
+    const sel = $("#dDusB", d), cur = sel.value || v.dus_belge || "", L = BEL && g("dIsl") && g("dDepo") ? BEL.filter(b => b.vade && (b.belge === "Çek" || b.belge === "Senet") && b.isletme_id == g("dIsl") && b.depo_id == g("dDepo") && nkBelgeAcikHam(b).top > 0.005).sort((a, b) => a.vade.localeCompare(b.vade)) : [];
+    const ops = L.map(b => ({ v: `${b.belge}:${b.vade}`, l: `${T(b.belge)} · ${fdate(b.vade)} · ${nf2.format(nkBelgeAcikHam(b).top)}` }));
+    if (cur && !ops.some(o => o.v === cur)) { const c = dusBelgeCoz(cur); if (c) ops.unshift({ v: cur, l: `${T(c.belge)} · ${fdate(c.vade)} · ${T("kapanmış")}` }); }
+    const ilk = cur || ops.find(o => o.v.slice(-10) >= todayISO())?.v || ops[0]?.v || "";
+    sel.innerHTML = ops.length ? ops.map(o => `<option value="${esc(o.v)}" ${o.v === ilk ? "selected" : ""}>${esc(o.l)}</option>`).join("") : `<option value="">${T(BEL ? "Bu depoda açık çek / senet yok" : "Yükleniyor…")}</option>`;
+    sel.disabled = !ops.length;
+  };
+  // açıklama boşsa: "15.12.2026 vadeli 500.000,00 senetten düşüldü"
+  const dusAciklama = () => { const c = dusBelgeCoz(g("dDusB")), a = $("#dA1", d); if (!c || !a || a.value.trim() || g("dDus") !== "belge") return; const b = (BEL || []).find(x => x.belge === c.belge && x.vade === c.vade && x.isletme_id == g("dIsl") && x.depo_id == g("dDepo"));
+    a.value = T("{v} vadeli {t} {b} tutarından düşüldü", { v: fdate(c.vade), t: b ? nf2.format(+b.tutar) : "", b: T(c.belge).toLocaleLowerCase("tr") }).replace(/\s+/g, " "); };
+  $("#dDus", d).onchange = () => { dusCiz(); dusAciklama(); }; $("#dDusB", d).onchange = dusAciklama;
   // çek / senet ödemesi: o depodaki açık belgeler seçilebilir (vade ve tutar dolar)
   let BEL = null;
   const acikL = () => { const isl = depoIslem(g("dIslem")); return BEL && isl?.belge && isl.belge_tip === "odeme" && g("dIsl") && g("dDepo") ? depoAcikBelgeler(BEL, g("dIsl"), g("dDepo"), isl.belge) : null; };
   const acikCiz = () => { const isl = depoIslem(g("dIslem")), on = !ed && !!isl?.belge && isl.belge_tip === "odeme"; $("#wdAcik", d).hidden = !on; if (on) depoAcikListe($("#dAcik", d), acikL() || []); };
   $("#dAcik", d).onchange = e => { const x = e.target._L?.[+e.target.value]; if (e.target.value === "" || !x) return; $("#dVade", d).value = x.vade; $("#dTutar", d).value = fmtInput(x.tutar); };
-  if (!ed) S.api.depoBelgeler().then(b => { BEL = b; if (d.isConnected) acikCiz(); }).catch(() => {});
+  S.api.depoBelgeler().then(b => { BEL = b; if (d.isConnected) { acikCiz(); dusCiz(); } }).catch(() => { BEL = []; if (d.isConnected) dusCiz(); });
   // çek girişi: çek no çek defterindeki eldeki yapraklardan seçilir (listede olmayan numara da yazılabilir)
   let CEKR = null;
   const cekOn = () => { const isl = depoIslem(g("dIslem")); return !ed && isl?.belge === "Çek" && isl.belge_tip === "giris"; };
@@ -12399,7 +12483,7 @@ function openDepoEntry(preset = {}) {
   $("#dCek", d).addEventListener("focus", e => { if (!e.target.value.trim()) e.target.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true })); });
   if (!ed) Promise.all([S.api.cekYapraklari(), S.api.depoBelgeler(), S.api.belgeDurumlari()]).then(([Y, b, du]) => { CEKR = cekDurumlar(Y, b, du); }).catch(() => {});
   $("#dIslem", d).addEventListener("change", cekCiz);
-  $("#dIsl", d).addEventListener("change", () => acikCiz()); $("#dDepo", d).addEventListener("change", () => acikCiz());
+  $("#dIsl", d).addEventListener("change", () => { acikCiz(); dusCiz(); }); $("#dDepo", d).addEventListener("change", () => { acikCiz(); dusCiz(); });
   // kredi kartıyla ödemede taksit sayısı
   const tkUpd = () => {
     const isl = depoIslem(g("dIslem")), on = !!isl?.odeme && isl.odeme !== "tahsilat" && hesap(g("dOde"))?.tur === "Kredi Kartı";
@@ -12414,11 +12498,14 @@ function openDepoEntry(preset = {}) {
     if (!g("dTarih")) errs.push(T("tarih")); if (!g("dIsl")) errs.push(T("işletme")); if (!g("dDepo")) errs.push(T("depo")); if (!isl) errs.push(T("işlem"));
     if (isNaN(tutar) || tutar <= 0) errs.push(T("tutar"));
     if (isl?.belge && !g("dVade")) errs.push(T("vade"));   // çek / senette vade zorunlu (hızlı girişle aynı)
+    if (depoFiyatFarki(isl) && g("dDus") === "belge" && !g("dDusB")) errs.push(T("düşülecek çek / senet"));
     if (errs.length) { toast(T("Eksik veya hatalı:") + " " + errs.join(", "), true); return null; }
     const tk = $("#wdTk", d).hidden ? 1 : +g("dTk") || 1;
     return { tarih: g("dTarih"), isletme_id: +g("dIsl"), depo_id: +g("dDepo"), islem_id: isl.id, tutar, vade: depoVadeAcik(isl) ? g("dVade") || null : null,
       odeme_hesap_id: isl.odeme && g("dOde") ? +g("dOde") : null, aciklama: g("dA1").trim() || null, aciklama2: g("dA2").trim() || null, ...($("#dA3", d) ? { aciklama3: g("dA3").trim() || null } : {}), onay: $("#dOnay", d).checked,
-      ...(tk > 1 || +ed?.taksit > 1 ? { taksit: tk > 1 ? tk : null } : {}) };
+      ...(tk > 1 || +ed?.taksit > 1 ? { taksit: tk > 1 ? tk : null } : {}),
+      // sütun yalnız gerektiğinde gönderilir (veritabanı güncellenmemiş olabilir)
+      ...(dus().onc || ed?.onceki_ay ? { onceki_ay: dus().onc } : {}), ...(dus().belge || ed?.dus_belge ? { dus_belge: dus().belge } : {}) };
   };
   let busy = false;
   const save = async andNew => {
@@ -12436,7 +12523,7 @@ function openDepoEntry(preset = {}) {
         if (cekNo) { try { await cekNoBelgeyeYaz(row, cekNo); if (CEKR) { const y = CEKR.find(r => r.isletme_id == row.isletme_id && cekNoDuz(r.cek_no) === cekNo); if (y) y.kod = "depo"; } } catch (er) { toast(T("Çek kaydedildi ama çek numarası yazılamadı: {m}", { m: errMsg(er) }), true); } } if (row.odeme_hesap_id && res?.[0]?.id) kartEsitleSonra([await S.api.depoHareketId(res[0].id).catch(() => null)]); toast(row.odeme_hesap_id ? T("Kaydedildi, hesap hareketlerine de işlendi") : T("Kaydedildi")); store.set("depoLast", { isletme_id: row.isletme_id, depo_id: row.depo_id, islem_id: row.islem_id }); }
       if (andNew) { drawerTemiz(); $("#dTutar", d).value = ""; $("#dCek", d).value = ""; $("#dA1", d).value = ""; $("#dA2", d).value = ""; $("#dTk", d).value = "1"; tkUpd(); $("#dTutar", d).focus(); } else closeDrawer();
       refreshView();
-    } catch (e) { toast(errMsg(e), true); } finally { busy = false; }
+    } catch (e) { toast(/onceki_ay|dus_belge/.test(`${e?.message || ""} ${errMsg(e)}`) ? ONCEKI_AY_SQL() : errMsg(e), true); } finally { busy = false; }
   };
   $("#dCancel", d).onclick = closeDrawer;
   $("#dSave", d).onclick = () => save(false);
@@ -12528,7 +12615,7 @@ async function depoKartCekim(B) {
   const kartListe = kartlar.filter(h => st.tumKart || h.kampanya || kullanilan.has(grupId(h))).sort((a, b) => kisiAd(a.kisi_id).localeCompare(kisiAd(b.kisi_id), "tr") || a.ad.localeCompare(b.ad, "tr"));
   // belge kapatma: çek/senet tamamen kartla ödendiyse "iade" kaydıyla kapatılabilir
   const belgeBul = b => kcBelgeli(b.tur) && b.vade ? bel.find(x => x.isletme_id == b.isletme_id && x.depo_id == b.depo_id && x.belge === b.tur && x.vade === b.vade) : null;
-  const kapatilabilir = b => { const x = belgeBul(b); return x && belgeKalan(x) > 0.005 && +x.tutar - +x.odenen <= 0.005; };
+  const kapatilabilir = b => { const x = belgeBul(b); return x && belgeKalan(x) > 0.005 && +x.tutar - +x.odenen - (+x.dusum || 0) <= 0.005; };   // çek / senetten düşülen fatura (ciro primi) ödenmiş sayılır
 
   const kartSecenek = c => {
     const grup = new Map();
@@ -12753,8 +12840,9 @@ async function kcBorcEkleFormu(borclar, bel, B) {
   const bugun = todayISO(), bul = f => borclar.find(f), A = new Map();   // aday anahtarı → { b, ev, sec, gun }
   const ekle = (k, b, ev, sec, ek = {}) => A.set(k, { b, ev, sec: sec && !ev, gun: false, ...ek });
   // çek ve senetler: Depolar › Çek ve senetler'deki verilmiş, henüz ödenmemiş belgeler
-  for (const x of bel.filter(x => x.vade && belgeKalan(x) > 0.005 && +x.tutar - +x.odenen > 0.005).sort((a, c) => a.vade.localeCompare(c.vade))) {
-    const b = { isletme_id: x.isletme_id, depo_id: x.depo_id, tur: x.belge, vade: x.vade, tutar: r2k(+x.tutar - +x.odenen), aciklama: null };
+  for (const x of bel.filter(x => x.vade && belgeKalan(x) > 0.005 && +x.tutar - +x.odenen - (+x.dusum || 0) > 0.005).sort((a, c) => a.vade.localeCompare(c.vade))) {
+    // çek / senetten düşülecek fatura (fiyat farkı, ciro primi) varsa kartla ödenecek tutar o kadar azdır
+    const b = { isletme_id: x.isletme_id, depo_id: x.depo_id, tur: x.belge, vade: x.vade, tutar: r2k(+x.tutar - +x.odenen - (+x.dusum || 0)), aciklama: +x.dusum > 0 ? T("{t} fatura mahsubu düşüldü", { t: nf2.format(+x.dusum) }) : null };
     ekle(`b|${x.isletme_id}|${x.depo_id}|${x.belge}|${x.vade}`, b, bul(y => y.tur === x.belge && y.isletme_id == x.isletme_id && y.depo_id == x.depo_id && y.vade === x.vade), x.vade >= bugun, { grup: "belge", gecti: x.vade < bugun });
   }
   // vadeli faturalar: vadesi geçmemiş (bir hafta tolerans), kalanı olan
@@ -13879,14 +13967,15 @@ const dkAlimMi = r => !r.odeme && !r.belge;   // alış, iade, fiyat farkı, tak
 // koşulu girilmiş eczaneler (eski aylık tahmin bunlarda yazılmaz)
 async function dkIsletmeler() { try { return new Set((await dkAyar()).L.filter(x => dkDepoMu(x.depo_id)).map(x => +x.isletme_id)); } catch (e) { return new Set(); } }
 // K: koşullar, bak: v_depo_bakiye satırları, ham: son aylardaki depo hareketleri → kalemler
-function dkHesap(K, bak, ham, today = todayISO(), tum = new Map()) {
+// emilen: "eczane|depo" → açık çek / senetten düşülmekte olan fatura tutarı (açık hesap bakiyesine geri eklenir: iki kez düşülmesin)
+function dkHesap(K, bak, ham, today = todayISO(), tum = new Map(), emilen = new Map()) {
   const ay0 = today.slice(0, 7), ufuk = ayKaydir(today, 12), out = [];
   const B = new Map(bak.map(b => [dkAnahtar(b.isletme_id, b.depo_id), b])), H = new Map();
   for (const r of ham) { const k = dkAnahtar(r.isletme_id, r.depo_id); if (!H.has(k)) H.set(k, []); H.get(k).push(r); }
   const [y0, m0, g0] = today.split("-").map(Number), ayGun = new Date(y0, m0, 0).getDate();
   for (const k of K) {
     if (k.tip === "kart" || !dkGecerli(k)) continue;
-    const key = dkAnahtar(k.isletme_id, k.depo_id), b = B.get(key), R = H.get(key) || [], C = +(b?.bakiye) || 0;
+    const key = dkAnahtar(k.isletme_id, k.depo_id), b = B.get(key), R = H.get(key) || [], C = (+(b?.bakiye) || 0) + (emilen.get(key) || 0);
     const depoAd = b?.depo || S.lk.depolar.find(d => d.id == k.depo_id)?.ad || "", taban = { isletme_id: +k.isletme_id, depo_id: +k.depo_id, depo: depoAd, tip: k.tip };
     if (k.tip === "fatura") {
       const ecz = dkTur(k.depo_id) === "Eczane", V = dkVadeKalan(tum.get(key) || [], ecz);
@@ -13902,6 +13991,12 @@ function dkHesap(K, bak, ham, today = todayISO(), tum = new Map()) {
       continue;
     }
     const np = new Map(); for (const r of R) if (dkAlimMi(r)) { const a = r.tarih.slice(0, 7); np.set(a, (np.get(a) || 0) + (r.yon === "Giren" ? 1 : -1) * +r.tutar); }
+    // "önceki ayın borcundan düş" işaretli fiyat farkı (bu ay kesilmiş): bu ayın alımından sayılmaz; bakiyeyi azalttığı için kapanan ayın kaleminden düşmüş olur.
+    // Cari bakiye ve ekstre değişmez; yalnız nakit akıştaki iki ay arasındaki dağılım değişir.
+    // çek / senetten düşülen fatura da (dus_belge) hiçbir ayın alımından düşülmez
+    const onc = R.filter(r => (r.onceki_ay || r.dus_belge) && dkAlimMi(r) && r.yon === "Çıkan" && r.tarih.slice(0, 7) === ay0).reduce((t, r) => t + +r.tutar, 0);
+    if (onc > 0) np.set(ay0, (np.get(ay0) || 0) + onc);
+    for (const r of R) if (r.dus_belge && dkAlimMi(r) && r.yon === "Çıkan") { const a = r.tarih.slice(0, 7); if (a !== ay0) np.set(a, (np.get(a) || 0) + +r.tutar); }
     const ort = [1, 2, 3].reduce((s, i) => s + Math.max(0, np.get(kartAyEkle(ay0, -i)) || 0), 0) / 3;
     // açık hesap bakiyesinden bu ayın net alımı ayrılır; kalanın tamamı (önceki aylardan devreden dahil) son kapanan ayın sonuna yazılır
     const geri = 1; let kalan = Math.max(0, C);
@@ -13928,8 +14023,9 @@ async function dkTumYukle(L, tum = new Map(), okunan = new Set()) {
 async function dkVeri() {
   const D = await dkAyar(); if (!D.L.length) return { D, bak: [], ham: [], kalem: [] };
   const maxOff = Math.max(...D.L.map(dkAyOff)), from = kartAyEkle(todayISO().slice(0, 7), -(maxOff + 4)) + "-01";
-  const [bak, ham, tum] = await Promise.all([S.api.depoBakiye(), S.api.depoHam({ from }), dkTumYukle(D.L), kartTatilYukle()]);
-  return { D, bak, ham, kalem: dkHesap(D.L, bak, ham, todayISO(), tum) };
+  const [bak, ham, tum, , bel] = await Promise.all([S.api.depoBakiye(), S.api.depoHam({ from }), dkTumYukle(D.L), kartTatilYukle(), S.api.depoBelgeler().catch(() => [])]);
+  const emilen = new Map(); for (const b of bel || []) { const e = +nkBelgeAcik(b).emilen || 0; if (e > 0.005) { const k = dkAnahtar(b.isletme_id, b.depo_id); emilen.set(k, (emilen.get(k) || 0) + e); } }
+  return { D, bak, ham, kalem: dkHesap(D.L, bak, ham, todayISO(), tum, emilen) };
 }
 // nakit akış eşitlemesi
 async function depoKosulNakitEsitle() {
@@ -14868,7 +14964,15 @@ function nkAltKume(A, hedef) {
       belgenin ödenmiş sayıldığı seçilir (olağan sıra: öde, sonra kapat). Hiçbiri tutmuyorsa (kartla kısmi ödeme gibi) artan tutar
       kalan belgelerden topluca düşülür ve tek satır yazılır.
    Belgeler tek tek gelmediyse (eski kurulum.sql) ya da iadeler eşlenemiyorsa kaba hesap: tutar − (iade ile ödenenden büyük olanı). */
+// çek / senetten düşülecek fatura (b.dusum) varsa açık tutar o kadar az sayılır (nakit akış, kart çekim planı, açık belge listesi).
+// emilen: belgenin açık tutarından gerçekten düşülen kısım (belge kapandıysa 0: fatura artık açık hesapta mahsup edilmiştir)
 function nkBelgeAcik(b) {
+  const r = nkBelgeAcikHam(b), d = Math.min(Math.max(0, +b.dusum || 0), r.top);
+  if (!(d > 0.005)) return r;
+  let kalan = d; const L = r.L ? r.L.map(g => { const k = Math.min(kalan, +g.tutar); kalan = Math.round((kalan - k) * 100) / 100; return { ...g, tutar: Math.round((+g.tutar - k) * 100) / 100 }; }).filter(g => g.tutar > 0.005) : null;
+  return { top: Math.round((r.top - d) * 100) / 100, L, emilen: d };
+}
+function nkBelgeAcikHam(b) {
   const kr = v => Math.round((+v || 0) * 100), T_ = kr(b.tutar), P = kr(b.odenen), I = kr(b.iade), kaba = Math.max(0, T_ - Math.max(I, P)) / 100;
   const G = Array.isArray(b.girisler) ? b.girisler.map(g => ({ ...g, k: kr(g.tutar) })) : null, IA = Array.isArray(b.iadeler) ? b.iadeler.map(kr).sort((x, y) => y - x) : null;
   if (!G || !IA || !G.length || G.length > 16 || G.reduce((s, g) => s + g.k, 0) !== T_ || IA.reduce((s, x) => s + x, 0) !== I) return { top: kaba, L: null };
@@ -14889,8 +14993,10 @@ function nakitDepoKalemleri(bel, conf, sahip, rows = null) {
   const elle = (b, tu) => { const r = elleL.find(r => !kul.has(r) && r.isletme_id == b.isletme_id && r.tarih === b.vade && Math.abs((+r.tutar || 0) - tu) < 1); if (r) kul.add(r); return !!r; };
   const out = [];
   for (const b of bel) {
-    if (!b.vade) continue; const { top, L } = nkBelgeAcik(b); if (!(top > 0.005)) continue;
-    const satir = (id, tu, ek) => ({ id, sanal: "depo", tarih: b.vade, isletme_id: b.isletme_id, isletme: b.isletme, kisi_id: sahip?.get(b.isletme_id) ?? null,
+    if (!b.vade) continue; const { top, L, emilen } = nkBelgeAcik(b); if (!(top > 0.005)) continue;
+    const dusNot = emilen > 0.005 ? T("fatura mahsubu −{t}", { t: nf2.format(emilen) }) : "";
+    const satir = (id, tu, ek0) => { const ek = [ek0, dusNot].filter(Boolean).join(" · "); return satir0(id, tu, ek); };
+    const satir0 = (id, tu, ek) => ({ id, sanal: "depo", tarih: b.vade, isletme_id: b.isletme_id, isletme: b.isletme, kisi_id: sahip?.get(b.isletme_id) ?? null,
       kategori_id: k?.id ?? null, kategori: k?.ad || "Depo Ödeme", yon: "Çıkan", tutar: tu, net: -tu, para_birimi: "TRY", aciklama1: b.depo, aciklama2: T("{belge} vadesi {t}", { belge: T(b.belge), t: b.vade.split("-").reverse().join("/") }) + (ek ? " · " + ek : ""), kesin: true, odendi: false, depo_id: b.depo_id, belge: b.belge });
     const kok = `d${b.isletme_id}-${b.depo_id}-${b.belge}-${b.vade}`;
     if (elle(b, top)) continue;   // toplamı karşılayan elle kalem
@@ -15369,7 +15475,8 @@ async function kkKismiEsitle() {
    - Kredi kartı ödemesi: ödenen kart aynı; kalem tarihi ödemeden en çok 20 gün sonra ya da 7 gün önce.
      Ödeme planın yeterince karşılığıysa (kesinleşmişte %95, tahminide %50) kalem kapanır; azsa kısmi
      ödeme sayılır, kalan tutar plan kaleminde açık kalır.
-   - Depo ödemesi: yalnız kesinleşmiş kalemler (ör. çek / senet) ve aynı tutar; aylık tahmin kapanmaz.
+   - Depo ödemesi: yalnız kesinleşmiş kalemler (ör. çek / senet, açık hesap bakiyesi) ve aynı tutar; aylık tahmin kapanmaz.
+     Hesap sahibi aranmaz (eczanenin borcu başka birinin kartıyla ödenebilir); çalışma koşulu kaleminde depo aynı olmalı.
    - Diğerleri: işletme ve hesap sahibi (kalemde yazılıysa) aynı, ±10 gün, tutar yazılıysa ±%25.
    En yakın tarihli (sonra aynı hesaplı, sonra tutarı en yakın) kalem seçilir. */
 async function nakitOtomatikKapat(ids) {
@@ -15391,11 +15498,16 @@ async function nakitOtomatikKapat(ids) {
     const uygun = x => {
       if (x.hareket_id || x.para_birimi !== h.para_birimi) return false;
       if (kk) return x.hesap_id == kart;
-      if (x.yon !== yon || (x.isletme_id && x.isletme_id != h.isletme_id) || (x.kisi_id && h.kisi_id && x.kisi_id != h.kisi_id)) return false;
+      // depo borcu işletmenindir: başka bir hesap sahibinin kartıyla / hesabıyla da ödenebilir, bu yüzden depo ödemesinde hesap sahibi aranmaz
+      if (x.yon !== yon || (x.isletme_id && x.isletme_id != h.isletme_id) || (rol !== "depo_odeme" && x.kisi_id && h.kisi_id && x.kisi_id != h.kisi_id)) return false;
       // personel ücreti kalemi (maaş / nöbet): hareketteki personel adı kalemdekiyle aynı olmalı
       if (/^(maas|nobetucret):/.test(x.kaynak || "") && h.personel && x.aciklama1 && trFold(h.personel) !== trFold(x.aciklama1)) return false;
       const p = +x.tutar || 0;
-      if (rol === "depo_odeme") return !!x.kesin && Math.abs(p - tu) <= Math.max(1, tu * 0.005);
+      if (rol === "depo_odeme") {
+        // çalışma koşulundan gelen kalem (depokosul:<işletme>:<depo>:…) yalnız aynı deponun ödemesiyle kapanır
+        const dk = /^depokosul:\d+:(\d+):/.exec(x.kaynak || ""); if (dk && h.depo_id && +dk[1] !== +h.depo_id) return false;
+        return !!x.kesin && Math.abs(p - tu) <= Math.max(1, tu * 0.005);
+      }
       return gun || p <= 0 || Math.abs(p - tu) <= Math.max(1, p * 0.25);
     };
     const ad = L.filter(uygun).sort((a, b) => Math.abs(dayDiff(h.tarih, a.tarih)) - Math.abs(dayDiff(h.tarih, b.tarih))
@@ -16281,6 +16393,10 @@ function srTarihler(x, from, to) {
   for (let ay = a.slice(0, 7); ay <= b.slice(0, 7); ay = kartAyEkle(ay, 1)) { if (!aylar.has(+ay.slice(5, 7))) continue; const t = srAyGunu(ay, x.gun); if (t >= a && t <= b && t >= bas) out.push(t); }
   return out;
 }
+// [from, to] aralığına düşen kalemler: kaydırılmış (tatilden sonraki / önceki iş günü) tarihe göre seçilir.
+// Asıl günü hafta sonuna denk gelip pazartesiye kayan kalem, pazartesi günü de listede kalır (asıl günü dünde kalsa bile).
+// Dönen: [{ t: asıl tarih (anahtar ve tutar için), k: kaydırılmış tarih }]
+const srGunler = (x, from, to) => srTarihler(x, addDays(from, -25), addDays(to, 25)).map(t => ({ t, k: srKaydir(t, x.kayma || "sonra") })).filter(y => y.k >= from && y.k <= to);
 const srAd = x => x.aciklama1 || kategori(x.kategori_id)?.ad || T("Düzenli kalem");
 function srSiklikMetin(x) {
   if (x.siklik === "hafta") return T("Her hafta · {g}", { g: haftaGunu(x.bas || todayISO()) });
@@ -16299,8 +16415,8 @@ async function surekliNakitEsitle() {
   const H = new Map();
   for (const x of A.L) {
     if (x.pasif) continue;
-    for (const t of srTarihler(x, today, to))
-      H.set(`surekli:${x.id}:${t}`, { tarih: srKaydir(t, x.kayma || "sonra"), yon: x.yon || "Çıkan", tutar: srTutar(x, t), para_birimi: x.para_birimi || "TRY", kategori_id: x.kategori_id ?? null, isletme_id: x.isletme_id ?? null,
+    for (const { t, k } of srGunler(x, today, to))
+      H.set(`surekli:${x.id}:${t}`, { tarih: k, yon: x.yon || "Çıkan", tutar: srTutar(x, t), para_birimi: x.para_birimi || "TRY", kategori_id: x.kategori_id ?? null, isletme_id: x.isletme_id ?? null,
         kisi_id: x.kisi_id ?? null, hesap_id: x.hesap_id ?? null, aciklama1: x.aciklama1 || null, aciklama2: x.aciklama2 || null, kesin: !!x.kesin });
   }
   return nkEsitle({ hedef: H, plan: rows, bizim, silKosul: r => r.tarih >= today });   // ortak kurallar: 18c-esitle.js
@@ -16313,12 +16429,12 @@ async function nakitSurekli(B) {
   await kartTatilYukle();
   if (!B.isConnected) return;
   const today = todayISO(), L = A.L.slice().sort((a, b) => (a.yon === b.yon ? 0 : a.yon === "Giren" ? 1 : -1) || srAd(a).localeCompare(srAd(b), "tr"));
-  const sonraki = x => { const t = srTarihler(x, today, addDays(today, 400))[0]; return t ? srKaydir(t, x.kayma || "sonra") : null; };
-  const yillik = x => srTarihler(x, today, addDays(today, 364)).reduce((s, t) => s + (srTutar(x, t) || 0), 0);
+  const sonraki = x => srGunler(x, today, addDays(today, 400))[0]?.k || null;
+  const yillik = x => srGunler(x, today, addDays(today, 364)).reduce((s, y) => s + (srTutar(x, y.t) || 0), 0);
   const top = d => L.filter(x => !x.pasif && x.yon === d).reduce((s, x) => s + yillik(x), 0);
   B.innerHTML = `<section class="panel"><div class="panel-h"><h2>${T("Düzenli ödeme ve tahsilatlar")}</h2><button class="btn primary sm" id="srYeni">${icon("plus")} ${T("Düzenli kalem ekle")}</button></div>
     ${L.length ? `<div class="tw"><table class="t sr-t"><thead><tr><th>${T("Kalem")}</th><th>${T("İşletme")}</th><th>${T("Ne zaman")}</th><th class="r">${T("Tutar")}</th><th>${T("Sonraki")}</th><th class="r">${T("12 ay toplamı")}</th><th>${T("Bitiş")}</th></tr></thead>
-      <tbody>${L.map(x => { const s = sonraki(x), tu = s ? srTutar(x, srTarihler(x, today, addDays(today, 400))[0]) : srTutar(x, today); return `<tr data-sr="${esc(x.id)}" tabindex="0" class="${x.pasif ? "iz-ayr" : ""}"><td><b>${esc(srAd(x))}</b>${x.pasif ? ` <span class="badge">${T("durduruldu")}</span>` : ""}<div class="muted iz-alt">${esc([kategori(x.kategori_id)?.ad, hesapAd(x.hesap_id), x.aciklama2].filter(Boolean).join(" · "))}</div></td>
+      <tbody>${L.map(x => { const s = sonraki(x), tu = s ? srTutar(x, srGunler(x, today, addDays(today, 400))[0].t) : srTutar(x, today); return `<tr data-sr="${esc(x.id)}" tabindex="0" class="${x.pasif ? "iz-ayr" : ""}"><td><b>${esc(srAd(x))}</b>${x.pasif ? ` <span class="badge">${T("durduruldu")}</span>` : ""}<div class="muted iz-alt">${esc([kategori(x.kategori_id)?.ad, hesapAd(x.hesap_id), x.aciklama2].filter(Boolean).join(" · "))}</div></td>
         <td class="muted">${esc(isletmeAd(x.isletme_id) || "—")}</td><td>${esc(srSiklikMetin(x))}${x.kayma === "yok" ? "" : `<div class="muted iz-alt">${T(x.kayma === "once" ? "tatilse önceki iş günü" : "tatilse sonraki iş günü")}</div>`}</td>
         <td class="r num ${x.yon === "Giren" ? "pos" : ""}">${tu == null ? `<span class="badge warn">${T("tutar belli değil")}</span>` : (x.yon === "Giren" ? "+" : "−") + money(tu, x.para_birimi || "TRY")}${x.kesin ? "" : `<div class="muted iz-alt">${T("tahmini")}</div>`}</td>
         <td class="num">${s ? fdate(s) : "—"}</td><td class="r num muted">${money(yillik(x), x.para_birimi || "TRY", { round: 1 })}</td><td class="muted">${x.bitis ? fdate(x.bitis) : T("süresiz")}</td></tr>`; }).join("")}</tbody>
@@ -16369,7 +16485,7 @@ function srFormu(x, x0 = {}) {
   const oku = () => ({ ...v, siklik: g("srSik"), gun: g("srGun") === "son" ? "son" : +g("srGun"), aylar: aylar(), kayma: g("srKay"), bas: g("srBas") || today, bitis: g("srBit") || null });
   const onizle = () => {
     const ay = g("srSik") !== "hafta"; $$(".sr-ay", d).forEach(e => (e.hidden = !ay));
-    const y = oku(), L = srTarihler(y, today, addDays(today, 365)).map(t => srKaydir(t, y.kayma));
+    const y = oku(), L = srGunler(y, today, addDays(today, 365)).map(z => z.k);
     $("#srOn", d).innerHTML = L.length ? T("Önümüzdeki 12 ayda {n} kalem: {l}", { n: L.length, l: esc(L.slice(0, 6).map(fdate).join(", ") + (L.length > 6 ? " …" : "")) }) : `<span class="neg">${T("Önümüzdeki 12 ayda tarih yok.")}</span>`;
   };
   // hızlı ay seçimi: başlangıç ayından itibaren
@@ -18408,11 +18524,11 @@ function ktAyarAc() {
 /* ---------- nakit akış eşitlemesi ----------
    Bugünden itibaren 1 yıl için nakit akıştaki tahmini kalemler kendiliğinden doldurulur:
    • "Pos": son POS çözüm tarihine kadar kasadaki bloke çözümü yazılır (geçecek tutar yoksa 0) ve kalem kesinleşir;
-     sonrasındaki günler son 6 ayda hesaba geçen POS'un günlük ortalamasını alır.
-   • "Eczane Kasadan Alınan": her gün son 6 ayın günlük ortalaması.
-   • "SGK", "Aile ve Sosyal Hiz. Bakanlığı": son 6 ayın aylık ortalaması her ayın 15'ine; kesinleşmiş kalemi olan aylar atlanır.
-   • "Depo Ödeme": aylık ortalama; o ay kesinleşmiş depo ödemeleri ve vadesi gelen çek/senetler düşülür, kalanı ayın 15'ine.
-   Ortalama = son 6 ayda hesap hareketlerindeki o kategorideki tutarlar ÷ gün (ya da 6 ay), 500 TL'nin katına aşağı yuvarlanır.
+     sonrasındaki günler son 6 ayda hesaba geçen POS'un günlük tutarının medyanını alır.
+   • "Eczane Kasadan Alınan": her gün son 6 ayın günlük tutarının medyanı.
+   • "SGK", "Aile ve Sosyal Hiz. Bakanlığı": son 6 ayın aylık medyanı her ayın 15'ine; kesinleşmiş kalemi olan aylar atlanır.
+   • "Depo Ödeme": aylık medyan; o ay kesinleşmiş depo ödemeleri ve vadesi gelen çek/senetler düşülür, kalanı ayın 15'ine.
+   Medyan = son 6 ay birer aylık 6 döneme bölünür; her dönemin günlük (ya da aylık) tutarı sıralanıp ortadaki alınır, 500 TL'nin katına aşağı yuvarlanır.
    Kalemi olmayan günler/aylar için kalem açılır. Kesinleşti işaretli kalemlere ve ödenmiş kalemlere dokunulmaz. */
 // ay kaydırma: gün hedef ayın son gününü aşamaz (31 Mart − 1 ay = 28/29 Şubat, 3 Mart değil)
 const ayKaydir = (iso, n) => { const [y, m, g] = iso.split("-").map(Number), son = new Date(y, m - 1 + n + 1, 0).getDate(); return isoOf(new Date(y, m - 1 + n, Math.min(g, son))); };
@@ -18421,9 +18537,19 @@ const katBul = ad => S.lk.kategoriler.find(k => trFold(k.ad).trim() === trFold(a
 const katYon = k => (k.tur === "Gelir" ? "Giren" : k.tur === "Gider" || k.tur === "Ödeme" ? "Çıkan" : "Giren");
 const NK_AYLIK = ["SGK", "Aile ve Sosyal Hiz. Bakanlığı", "Depo Ödeme"];
 async function katOrtalama(kat, aylik) {
-  const yon = katYon(kat), bit = addDays(todayISO(), -1), bas = ayKaydir(todayISO(), -6), gun = dayDiff(bas, bit) + 1, top = new Map();
-  for (const h of await S.api.posHareketleri(kat.id, bas, bit)) if (h.isletme_id) top.set(h.isletme_id, (top.get(h.isletme_id) || 0) + (h.yon === yon ? 1 : -1) * +h.tutar);
-  return { yon, ort: new Map([...top].map(([i, v]) => [i, asagi500(v / (aylik ? 6 : gun))])), bas, bit, gun };
+  const yon = katYon(kat), today = todayISO(), bit = addDays(today, -1), bas = ayKaydir(today, -6), gun = dayDiff(bas, bit) + 1;
+  // son 6 ay, birer aylık 6 döneme bölünür; tahmin dönemlerin medyanıdır (ortadaki değer): tek bir olağan dışı ay tahmini kaydırmaz.
+  // İşletmenin ilk hareketinden önceki boş dönemler sayılmaz (yeni açılan işletmede tahmin düşük çıkmasın).
+  const D = Array.from({ length: 6 }, (_, i) => { const b0 = ayKaydir(today, i - 6), b1 = addDays(ayKaydir(today, i - 5), -1); return { b0, b1, gun: dayDiff(b0, b1) + 1 }; });
+  const top = new Map();
+  for (const h of await S.api.posHareketleri(kat.id, bas, bit)) {
+    if (!h.isletme_id) continue;
+    const i = D.findIndex(d => h.tarih >= d.b0 && h.tarih <= d.b1); if (i < 0) continue;
+    const L = top.get(h.isletme_id) || Array(6).fill(null); top.set(h.isletme_id, L);
+    L[i] = (L[i] || 0) + (h.yon === yon ? 1 : -1) * +h.tutar;
+  }
+  const ort = new Map([...top].map(([isl, L]) => { const ilk = L.findIndex(v => v != null); return [isl, asagi500(medyan(L.slice(ilk).map((v, j) => (v || 0) / (aylik ? 1 : D[ilk + j].gun))) || 0)]; }));
+  return { yon, ort, bas, bit, gun };
 }
 const gunlukOrtalama = kat => katOrtalama(kat, false);
 const nkFark = (x, v) => x.tutar == null || Math.abs(+x.tutar - v) >= 0.005;
@@ -18974,9 +19100,11 @@ function satisNakitBeklenen(rows, today = todayISO()) {
   return B;
 }
 /* Henüz girilmemiş fatura aylarının ödemeleri (tahmini): işletmenin girilen son fatura ayından sonraki her ay için,
-   son SATIS_TAHMIN_AY ayın ortalamasıyla, gerçek faturayla aynı tarih kuralı ve aynı anahtarla yazılır. Fatura girilince
-   aynı kalem gerçek tutarla kesinleşir. Bugünden bir yıl sonrasına kadar. Ek fatura tahmin edilmez. */
+   son SATIS_TAHMIN_AY ayın medyanıyla (kan ürünü: ortalamasıyla), gerçek faturayla aynı tarih kuralı ve aynı anahtarla yazılır. Fatura girilince
+   aynı kalem gerçek tutarla kesinleşir. Bugünden bir yıl sonrasına kadar. Ek fatura tahmin edilmez; son 6 ayın 3'ünden azında
+   faturalanan kalem de tahmin edilmez. */
 const SATIS_TAHMIN_AY = 6;
+const SATIS_TAHMIN_EN_AZ = 3;
 function satisTahminEkle(rows, B, today) {
   const ufuk = addDays(today, 365), I = new Map();   // işletme → ay → { ana, gecici, kan15, kanSon, katilim }
   for (const r of rows) {
@@ -18988,7 +19116,10 @@ function satisTahminEkle(rows, B, today) {
   }
   for (const [isl, M] of I) {
     const aylar = [...M.keys()].sort(), son = aylar[aylar.length - 1]; if (!son) continue;
-    const ornek = aylar.slice(-SATIS_TAHMIN_AY), ort = k => Math.round(ornek.reduce((t, a) => t + M.get(a)[k], 0) / ornek.length / 100) * 100;
+    const ornek = aylar.slice(-SATIS_TAHMIN_AY), gerek = Math.min(SATIS_TAHMIN_EN_AZ, ornek.length);
+    // seyrek gelen kalem (ör. yılda bir iki kez kesilen kan ürünü) aylara yayılmaz: örnek ayların en az SATIS_TAHMIN_EN_AZ'ında faturalanmış olmalı
+    // reçete ödemesi, geçici koruma, katılım payı: örnek ayların medyanı (ortadaki değer) — tek bir olağan dışı ay tahmini kaydırmaz; kan ürünü: ortalama
+    const ort = k => { const V = ornek.map(a => M.get(a)[k]); return V.filter(v => v > 0.005).length < gerek ? 0 : Math.round((/^kan/.test(k) ? V.reduce((t, v) => t + v, 0) / V.length : medyan(V)) / 100) * 100; };
     const O = { ana: ort("ana"), gecici: ort("gecici"), kan15: ort("kan15"), kanSon: ort("kanSon"), katilim: ort("katilim") };
     for (let i = 1; i <= 15; i++) {
       const ay = kartAyEkle(son, i), sonGun = ayinSonu(ay + "-01", 0), on5 = ay + "-15";
